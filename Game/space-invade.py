@@ -1,3 +1,14 @@
+#!/usr/bin/env python3.9
+# -*- coding: utf-8 -*-
+
+###############################################################################
+#
+# Mudanças em relação à versão anterior:
+#    - Background: agora carrega uma imagem e atualiza a posição durante o
+#      jogo, dando a impressão que o fundo desce.
+#
+###############################################################################
+
 import os, sys
 import getopt
 
@@ -5,32 +16,81 @@ import getopt
 import pygame
 from pygame.locals import *
 
-images_dir = os.path.join( "..", "imagens" )
+images_dir = os.path.join( "..", "docs/img" )
 
 
 class Background:
     """
-        Esta classe representa o ator "Fundo" do jogo.
+    Esta classe representa o ator "Fundo" do jogo.
     """
     image = None
+    pos   = None
     
-    def __init__( self ):
-        screen = pygame.display.get_surface()
-        back   = pygame.Surface( screen.get_size() ).convert()
-        back.fill( ( 0, 0, 0 ) )
+    def __init__( self, image="tile.png" ):
+        """
+        Com essa função criamos uma superfície, formada de uma repetição da
+        imagem passada, de forma a cobrir a tela e um pouco mais.
+
+        Aqui é o único lugar onde podemos carregar a imagem, utilizando
+            load( image ).convert(),
+        este comando não tem nenhuma relação com o formato de arquivo da
+        imagem. Ele converte a imagem para o formato do pixel[1] da tela,
+        representando um ganho de até 6X na performance final[2].
+
+        [1] Formato de Pixel: Toda imagem é formada por um conjunto de pixels,
+            estes são descritos por uma quantidade de bits que representam as
+            cores. Em geral utiliza-se RGB (Red, Green, Blue) ou RGBA (RGB +
+            Aplha/Transparência).    Em geral a tela tem um formato de 16 BPP
+            (bits per pixel) e as imagens com transparência são 32 BPP (RGBA,
+            variação de 256 níveis para cada cor e transparência). Ao converter
+            para o formato da tela, você perde a resolução de cores e a
+            transparência, como estas não são informações importantes para o
+            fundo, é conveniente converter para este formato.
+        [2] O ganho de performance se dá à necessidade de mesclar as imagens
+            (usando o canal alpha) e então transformar para o formato da tela.
+            Ao converter, elimina-se o alpha (e a necessidade de mesclar) e a
+            necessidade de converter a cada "blit".
+        """
+
+        if isinstance( image, str ):
+            image = os.path.join( images_dir, image )
+            image = pygame.image.load( image ).convert()
+
+        self.isize = image.get_size()
+        self.pos = [ 0, -1 * self.isize[ 1 ] ]
+        screen      = pygame.display.get_surface()
+        screen_size = screen.get_size()
+
+        from math import ceil
+        w = ( ceil( float( screen_size[ 0 ] ) / self.isize[ 0 ] ) + 1 ) * \
+            self.isize[ 0 ]
+        h = ( ceil( float( screen_size[ 1 ] ) / self.isize[ 1 ] ) + 1 ) * \
+            self.isize[ 1 ]
+
+        back = pygame.Surface( ( w, h ) )
+        
+        for i in range( int( back.get_size()[ 0 ] / self.isize[ 0 ] ) ):
+            for j in range( int( back.get_size()[ 1 ] / self.isize[ 1 ] ) ):
+                back.blit( image, ( i * self.isize[ 0 ], j * self.isize[ 1 ] ) )
+
         self.image = back
+    # __init__()
+
 
 
     def update( self, dt ):
-        pass # Ainda não faz nada
+        self.pos[ 1 ] += 1
+        if ( self.pos[ 1 ] > 0 ):
+            self.pos[ 1 ] -= self.isize[ 1 ]
     # update()
 
 
 
     def draw( self, screen ):
-        screen.blit( self.image, ( 0, 0 ) )
+        screen.blit( self.image, self.pos )
     # draw()
 # Background
+
 
 
 
@@ -42,10 +102,8 @@ class Game:
     
     def __init__( self, size, fullscreen ):
         """
-            Esta é a função que inicializa o pygame, 
-            define a resolução da tela,
-            caption, 
-            e disabilitamos o mouse dentro desta.
+        Esta é a função que inicializa o pygame, define a resolução da tela,
+        caption, e disabilitamos o mouse dentro desta.
         """
         actors = {}
         pygame.init()
@@ -63,7 +121,7 @@ class Game:
 
     def handle_events( self ):
         """
-            Trata o evento e toma a ação necessária.
+        Trata o evento e toma a ação necessária.
         """
         for event in pygame.event.get():
             t = event.type
@@ -95,10 +153,10 @@ class Game:
     
     def loop( self ):
         """
-            Laço principal
+        Laço principal
         """
         # Criamos o fundo
-        self.background = Background()
+        self.background = Background( "tile.png" )
 
         # Inicializamos o relogio e o dt que vai limitar o valor de
         # frames por segundo do jogo
@@ -130,7 +188,7 @@ class Game:
 
 def usage():
     """
-        Imprime informações de uso deste programa.
+    Imprime informações de uso deste programa.
     """
     prog = sys.argv[ 0 ]
     print("Usage:")
@@ -141,7 +199,7 @@ def usage():
 
 def parse_opts( argv ):
     """
-        Pega as informações da linha de comando e retorna 
+    Pega as informações da linha de comando e retorna 
     """
     # Analise a linha de commando usando 'getopt'
     try:
@@ -202,8 +260,6 @@ def main( argv ):
     game = Game( options[ "resolution" ], options[ "fullscreen" ] )
     game.loop()
 # main()
-     
-     
         
 # este comando fala para o python chamar o main se estao executando o script
 if __name__ == '__main__':
