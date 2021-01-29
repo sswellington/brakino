@@ -4,8 +4,11 @@
 ###############################################################################
 #
 # Mudanças em relação à versão anterior:
-#    - classe Player: representa o jogador
-#    - jogador pode se movimentar
+#    - classe Fire() representa os tiros
+#    - acrescenta tiros. Objetos apresentam o método fire()
+#    - detecta acerto de tiros no jogador e inimigos
+#    - mudança de nível baseado nos acertos do personagem
+#    - inimigos atiram aleatoriamente
 #
 ###############################################################################
 
@@ -120,8 +123,21 @@ class GameObject( pygame.sprite.Sprite ):
 
 
 
+
+class Fire( GameObject ):
+    def __init__( self, position, speed=None, image=None, list=None ):
+        if not image:
+            image = "tiro.png"
+        GameObject.__init__( self, image, position, speed )
+        if list != None:
+            self.add( list )
+    # __init__()
+# Fire
+
+
+
 class Ship( GameObject ):
-    def __init__( self, position, lives=0, speed=[ 0, 0 ], image=None ):
+    def __init__( self, position, lives=0, speed=None, image=None ):
         self.acceleration = [ 3, 3 ]
         if not image:
             image = "nave.png"
@@ -140,6 +156,23 @@ class Ship( GameObject ):
     def set_lives( self, lives ):
         self.lives = lives
     # set_lives()
+
+
+
+    def fire( self, fire_list, image=None ):
+        s = list( self.get_speed() )
+        s[ 1 ] *= 2
+        Fire( self.get_pos(), s, image, fire_list )
+    # fire()
+
+    
+
+    def do_hit( self ):
+        if self.get_lives() == 0:
+            self.kill()
+        else:
+            self.set_lives( self.get_lives() - 1 )
+    # do_hit()
 
 
 
@@ -207,6 +240,8 @@ class Player( Ship ):
        A função get_pos() só foi redefinida para que os tiros não saissem da
     parte da frente da nave do personagem, por esta estar virada ao contrário
     das outras.
+       A função fire() foi redefinida para levar em conta a experiência do
+    jogador (quanto mais experiência, mais tiros).
     """
     def __init__( self, position, lives=10, image=None ):
         if not image:
@@ -252,6 +287,44 @@ class Player( Ship ):
     def set_XP( self, XP ):
         self.XP = XP
     # get_XP()
+
+
+    def fire( self, fire_list, image=None ):
+        l = 1
+        if self.XP > 10: l = 3
+        if self.XP > 50: l = 5
+        
+        p      = self.get_pos()
+        speeds = self.get_fire_speed( l )
+        for s in speeds:
+            Fire( p, s, image, fire_list )
+    # fire()
+
+
+
+    def get_fire_speed( self, shots ):
+        speeds = []
+
+        if shots <= 0:
+            return speeds
+        
+        if shots == 1:
+            speeds += [ (  0, -5 ) ]
+            
+        if shots > 1 and shots <= 3:
+            speeds += [ (  0, -5 ) ]
+            speeds += [ ( -2, -3 ) ]
+            speeds += [ (  2, -3 ) ]
+            
+        if shots > 3 and shots <= 5:
+            speeds += [ (  0, -5 ) ]
+            speeds += [ ( -2, -3 ) ]
+            speeds += [ (  2, -3 ) ]
+            speeds += [ ( -4, -2 ) ]
+            speeds += [ (  4, -2 ) ]
+
+        return speeds
+    # get_fire_speed()
 # Player
 
 
@@ -339,6 +412,8 @@ class Game:
     screen      = None
     screen_size = None
     run         = True
+    interval    = 0
+    level       = 0
     list        = None
     player      = None
     background  = None    
@@ -379,6 +454,9 @@ class Game:
             elif t == KEYDOWN:
                 if   k == K_ESCAPE:
                     self.run = False
+                elif k == K_LCTRL or k == K_RCTRL:
+                    self.interval = 0
+                    player.fire( self.list[ "fire" ] )
                 elif k == K_UP:
                     player.accel_top()
                 elif k == K_DOWN:
@@ -397,6 +475,12 @@ class Game:
                     player.accel_right()
                 elif k == K_RIGHT:
                     player.accel_left()
+        
+            keys = pygame.key.get_pressed()
+            if self.interval > 10:
+                self.interval = 0
+                if keys[ K_RCTRL ] or keys[ K_LCTRL ]:
+                    player.fire( self.list[ "fire" ] )        
     # handle_events()
 
 
@@ -437,17 +521,55 @@ class Game:
 
     
     def actors_act( self ):
+        # Verifica se personagem foi atingido por um tiro
+        self.actor_check_hit( self.player, self.list[ "enemies_fire" ],
+                              self.player.do_hit )
+        if self.player.is_dead():
+            self.run = False
+            return
+            
         # Verifica se o personagem trombou em algum inimigo
         self.actor_check_hit( self.player, self.list[ "enemies" ],
                               self.player.do_collision )
         if self.player.is_dead():
             self.run = False
             return
+
+        # Verifica se o personagem atingiu algum alvo.
+        hitted = self.actor_check_hit( self.list[ "fire" ],
+                                       self.list[ "enemies" ],
+                                       Enemy.do_hit )
+        
+        # Aumenta a eXPeriência baseado no número de acertos:
+        self.player.set_XP( self.player.get_XP() + len( hitted ) )
     # actors_check_hit()
 
 
 
+    def change_level( self ):
+        xp = self.player.get_XP()
+        if   xp > 10  and self.level == 0:
+            self.background = Background( "tile2.png" )
+            self.level = 1
+            self.player.set_lives( self.player.get_lives() + 3 )
+        elif xp > 50  and self.level == 1:
+            self.background = Background( "tile3.png" )
+            self.level = 2        
+            self.player.set_lives( self.player.get_lives() + 6 )
+    # change_level()
+
+
+
     def manage( self ):
+        self.ticks += 1
+        # Faz os inimigos atirarem aleatóriamente
+        if self.ticks > Random.randint( 20, 30 ):
+            for enemy in self.list[ "enemies" ].sprites():
+                if Random.randint( 0, 10 ) > 5:
+                    enemy.fire( self.list[ "enemies_fire" ],
+                                image="tiro_inimigo.png" )
+                    self.ticks = 0
+        
         # criamos mais inimigos randomicamente para o jogo não ficar chato
         r = Random.randint( 0, 100 )
         x = Random.randint( 1, self.screen_size[ 0 ] / 20 )
@@ -456,6 +578,9 @@ class Game:
             size  = enemy.get_size()
             enemy.set_pos( [ x * size[ 0 ], - size[ 1 ] ] )
             self.list[ "enemies" ].add( enemy )
+
+        # Verifica se ascendeu de nível
+        self.change_level()
     # manage()
 
 
@@ -471,18 +596,23 @@ class Game:
         # frames por segundo do jogo
         clock         = pygame.time.Clock()
         dt            = 16
+        self.ticks    = 0
+        self.interval = 1
 
         pos         = [ self.screen_size[ 0 ] / 2, self.screen_size[ 1 ] ]
         self.player = Player( pos, lives=10 )
 
         self.list = {
-            "enemies" : pygame.sprite.RenderPlain( Enemy( [ 120, 0 ] ) ),
-            "player" : pygame.sprite.RenderPlain( self.player ),
+            "player"       : pygame.sprite.RenderPlain( self.player ),
+            "enemies"      : pygame.sprite.RenderPlain( Enemy( [ 120, 0 ] ) ),
+            "fire"         : pygame.sprite.RenderPlain(),
+            "enemies_fire" : pygame.sprite.RenderPlain()
             }
 
         # assim iniciamos o loop principal do programa
         while self.run:
             clock.tick( 1000 / dt )
+            self.interval += 1
 
             # Handle Input Events
             self.handle_events()
