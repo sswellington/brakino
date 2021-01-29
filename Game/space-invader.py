@@ -4,24 +4,164 @@
 ###############################################################################
 #
 # Mudanças em relação à versão anterior:
-#    - Background: agora carrega uma imagem e atualiza a posição durante o
-#      jogo, dando a impressão que o fundo desce.
+#    - classe GameObject: representa objetos do jogo (inimigos, tiros, jogador)
+#    - classe Ship: base para todas as naves do jogo
+#    - classe Enemy: presença de inimigos na tela
 #
 ###############################################################################
 
-import os, sys
 import getopt
+import logging
+import os, sys
 
 # E importaremos o pygame tambem para esse exemplo
 import pygame
 from pygame.locals import *
 
-images_dir = os.path.join( "..", "docs/img" )
+# O random será muito útil para esse jogo, ele ajuda o jogo a perder a monotonia
+import random as Random
+
+
+images_dir = os.path.join( "..", "imagens" )
+
+logging.basicConfig(filename=('log/spaceinvader.txt'),
+            level=logging.DEBUG, 
+            format=' %(asctime)s - %(levelname)s - %(message)s')
+
+
+class GameObject( pygame.sprite.Sprite ):
+    """
+    Esta é a classe básica de todos os objetos do jogo.
+    
+    Na verdade as caixas de texto e o seu contador de vida não são desta
+    classe, mas seria overkill utilizar uma classe pra fazer aquilo e neste
+    caso, elas poderiam ser desta classe.
+
+    Para não precisar se preocupar com a renderização, vamos fazer a
+    classe de forma que ela seja compatível com o RenderPlain, que já possui
+    uma função otimizada para renderização direta sobre a tela. Para isso,
+    temos que ter três coisas nesta classe:
+    
+    1) Ser derivada de Sprite, isto é uma boa coisa, pois a classe Sprite
+       cria várias facilidades para o nosso trabalho, como poder ser removida
+       dos grupos em que foi colocada, inclusive o de Render, através de
+       uma chamada a self.kill()
+       
+    2) Ter self.image. Uma vez que precisamos carregar uma imagem, isto só
+       nos define o nome que daremos a imagem a ser renderizada.
+       
+    3) Ter self.rect. Esse retângulo conterá o tamanho da imagem e sua posição.
+       Nas formas:
+           rect = ( ( x, y ), ( width, height ) )
+       ou
+           rect = ( x, y, width, height )
+       e ainda nos fornece algumas facilidades em troca, como o rect.move que
+       já desloca a imagem a ser renderizada com apenas um comando.
+    """
+    def __init__( self, image, position, speed=None ):
+        pygame.sprite.Sprite.__init__( self )
+        self.image = image
+        if isinstance( self.image, str ):
+            self.image = os.path.join( images_dir, self.image )
+            self.image = pygame.image.load( self.image )
+
+        self.rect  = self.image.get_rect()
+        screen     = pygame.display.get_surface()
+        self.area  = screen.get_rect()
+        
+        self.set_pos( position )
+        self.set_speed( speed or ( 0, 2 ) )
+    # __init__()
+
+
+    
+    def update( self, dt ):
+        move_speed = ( self.speed[ 0 ] * dt / 16,
+                       self.speed[ 1 ] * dt / 16 )
+        self.rect  = self.rect.move( move_speed )
+        if ( self.rect.left > self.area.right ) or \
+               ( self.rect.top > self.area.bottom ) or \
+               ( self.rect.right < 0 ):
+            self.kill()
+        if ( self.rect.bottom < - 40 ):
+            self.kill()
+    # update()
+
+
+    
+    def get_speed( self ):
+        return self.speed
+    # get_speed()
+
+
+
+    def set_speed( self, speed ):
+        self.speed = speed
+    # set_speed()
+
+    
+
+    def get_pos( self ):
+        return ( self.rect.center[ 0 ],
+                 self.rect.bottom )
+    # get_pos()
+    
+
+
+    def set_pos( self, pos ):
+        self.rect.center = ( pos[ 0 ], pos[ 1 ] )
+    # get_pos()
+
+
+
+    def get_size( self ):
+        return self.image.get_size()
+    # get_size()
+# GameObject
+
+
+
+class Ship( GameObject ):
+    def __init__( self, position, lives=0, speed=[ 0, 0 ], image=None ):
+        self.acceleration = [ 3, 3 ]
+        if not image:
+            image = "nave.png"
+        GameObject.__init__( self, image, position, speed )
+        self.set_lives( lives )
+    # __init__()
+
+    
+
+    def get_lives( self ):
+        return self.lives
+    # get_lives()
+
+
+
+    def set_lives( self, lives ):
+        self.lives = lives
+    # set_lives()
+# Ship
+
+
+
+class Enemy( Ship ):
+    def __init__( self, position, lives=0, speed=None, image=None ):
+        if not image:
+            image = "inimigo.png"
+        Ship.__init__( self, position, lives, speed, image )
+    # __init__()
+# Enemy
+
+
 
 
 class Background:
     """
     Esta classe representa o ator "Fundo" do jogo.
+
+    Ela poreria ser herdeira de GameObject, porém como ela não precisa de todos
+    aqueles recursos, implemento somente alguns métodos (update() e draw())
     """
     image = None
     pos   = None
@@ -98,6 +238,7 @@ class Game:
     screen      = None
     screen_size = None
     run         = True
+    list        = None
     background  = None    
     
     def __init__( self, size, fullscreen ):
@@ -141,13 +282,32 @@ class Game:
 
     def actors_update( self, dt ):        
         self.background.update( dt )
+        
+        for actor in self.list.values():
+            actor.update( dt )
     # actors_update()
 
 
 
     def actors_draw( self ):
         self.background.draw( self.screen )
+        
+        for actor in self.list.values():
+            actor.draw( self.screen )
     # actors_draw()
+
+
+
+    def manage( self ):
+        # criamos mais inimigos randomicamente para o jogo não ficar chato
+        r = Random.randint( 0, 100 )
+        x = Random.randint( 1, self.screen_size[ 0 ] / 20 )
+        if ( r > ( 40 * len( self.list[ "enemies" ] ) ) ):
+            enemy = Enemy( [ 0, 0 ] )
+            size  = enemy.get_size()
+            enemy.set_pos( [ x * size[ 0 ], - size[ 1 ] ] )
+            self.list[ "enemies" ].add( enemy )
+    # manage()
 
 
     
@@ -163,6 +323,9 @@ class Game:
         clock         = pygame.time.Clock()
         dt            = 16
 
+        self.list = {
+            "enemies" : pygame.sprite.RenderPlain( Enemy( [ 120, 0 ] ) ),
+            }
 
         # assim iniciamos o loop principal do programa
         while self.run:
@@ -174,13 +337,16 @@ class Game:
             # Atualiza Elementos
             self.actors_update( dt )
 
+            # Faça a manutenção do jogo, como criar inimigos, etc.
+            self.manage()
+            
             # Desenhe para o back buffer
             self.actors_draw()
             
             # ao fim do desenho temos que trocar o front buffer e o back buffer
             pygame.display.flip()
 
-            print("FPS: %0.2f" % clock.get_fps())
+            logging.debug("FPS: %0.2f" % clock.get_fps())
         # while self.run
     # loop()
 # Game
