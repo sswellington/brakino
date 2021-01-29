@@ -1,0 +1,1075 @@
+% -*- mode: latex -*-
+% -*- coding: latin-1 -*-
+
+% TODO:
+%  - Revisar o que foi feito
+%  - Pensar no que falar em cada seção
+
+
+
+% TOPIC..: Introduction to Game Programming with Python + PyGame
+% LICENSE: GNU GPL-2
+% AUTHOR.: Gustavo Sverzut Barbieri <barbieri@gmail.com>
+% URL....: http://palestras.gustavobarbieri.com.br/pygame/
+
+% I used to like Prosper, but Beamer is much better!
+% Get it at: http://latex-beamer.sourceforge.net
+\documentclass{beamer}
+
+\usepackage{beamerthemesplit}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage[brazil]{babel}
+\usepackage[latin1]{inputenc}
+
+\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps}
+\usepackage{amsmath,amssymb}
+
+
+ \usetheme{Antibes} % low layout overhead  (just top)
+% \usetheme{Berkeley} % medium layout overhead
+% \usetheme{Berlin}
+% \usetheme{Bergen}
+% \usetheme{Boadilla}  % very low layout overhead
+% \usetheme{Copenhagen}
+% \usetheme{Darmstadt}
+% \usetheme{Dresden}
+% \usetheme{Frankfurt}
+% \usetheme{Goettingen} % great
+% \usetheme{Hannover}
+% \usetheme{Ilmenau}
+% \usetheme{JuanLesPins}
+% \usetheme{Luebeck}
+% \usetheme{Madrid}
+% \usetheme{Malmoe}
+% \usetheme{Marburg} % great
+% \usetheme{Montpellier}
+% \usetheme{PaloAlto}
+% \usetheme{Pittsburgh}
+% \usetheme{Rochester}
+% \usetheme{Singapore}
+% \usetheme{Szeged}
+% \usetheme{Warsaw} % great
+% \usetheme{Darmstadt}
+
+
+%\usefonttheme{structurebold}
+\usefonttheme{professionalfonts}
+
+% \usecolortheme{albatross} % dark blue
+% \usecolortheme{beetle} % grey + blue
+% \usecolortheme{crane} % yellow
+% \usecolortheme{default}
+ \usecolortheme{dolphin} % light purple + white
+% \usecolortheme{dove} % b&w, excellent to print
+% \usecolortheme{fly} % all grey
+% \usecolortheme{lily} % dark blue
+% \usecolortheme{orchid} % dark blue
+% \usecolortheme{rose} % yet another blue
+% \usecolortheme{seagull} % white and grey
+% \usecolortheme{seahorse} % light purple
+% \usecolortheme{whale}
+
+
+\title{Programação de Jogos em Python}
+\author{Gustavo Sverzut Barbieri}
+\institute{GPSL - UNICAMP}
+
+
+\begin{document}
+
+  \lstset{
+    frame=single,
+    showstringspaces=false,  
+    extendedchars=true,
+    language=Python,
+    backgroundcolor=\color[rgb]{0.95,0.95,0.95},
+    rulecolor=\color[rgb]{0.3,0.3,0.3},
+    basicstyle=\color[rgb]{0,0,0}\small\upshape\ttfamily,
+    commentstyle=\color[rgb]{0.5,0.0,0.0}\rmfamily\itshape,
+    keywordstyle=\color[rgb]{0.7,0.0,0.8}\bfseries,
+    stringstyle=\color[rgb]{0.6,0.4,0.4},
+    identifierstyle=\color[rgb]{0.2,0.2,0.8}
+ }
+
+
+
+\frame{\titlepage}
+
+%\section<presentation>*{Outline}
+
+\begin{frame}
+  \tableofcontents[hideallsubsections]
+\end{frame}
+
+% \AtBeginSubsection[]
+% {
+%   \begin{frame}<beamer>
+%     \frametitle{Outline}
+%     \tableofcontents[current,currentsubsection]
+%   \end{frame}
+% }
+
+\section{Introdução}
+\subsection{Por que Python?}
+
+\frame[containsverbatim]{
+  \frametitle{Python é fácil!}
+
+  Linguagem de alto nível bem parecida com o modo que pensamos,
+  ideal para fazer a inteligência de um jogo
+
+  \begin{lstlisting}  
+for elemento in elementos:
+   if elemento.tipo in tipos_inimigos:
+      atire_no_elemento( elemento )
+  \end{lstlisting}
+}
+
+
+
+
+
+\begin{frame}
+  \frametitle{Outras vantagens do Python}
+
+  \begin{itemize}
+  \item Multi-plataforma
+  \item Orientada a Objetos: encapsulamento
+  \item Dinâmica
+  \item Vasta biblioteca padrão e bibliotecas de terceiros
+  \item Grande comunidade de desenvolvedores
+  \item Fácil de interagir com outras linguagens, em especial C
+  \item Geral o bastante para ajudar em áreas diversas, como:
+    \begin{itemize}
+    \item Automatização de processos de desenvolvimento
+    \item Ajudar que roteiristas e artistas experimentem com diversos
+      efeitos, sem que necessitem de um vasto conhecimento de
+      programação
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+
+
+
+\begin{frame}
+  \frametitle{Problemas e Soluções}
+
+  Nem tudo são maravilhas, o principal problema é:
+
+  \begin{description}
+  \item[Python é lento:] Python não é ideal para fazer processamento de
+    imagens, iterações sobre grandes matrizes etc. \textbf{Solução:}
+    Quando a velocidade começar a ser um problema, analise o seu
+    código em um \emph{profiler} e otimze tal região, talvez
+    implemente-a em C/Assembly.
+  \end{description}
+
+  Na verdade grande parte disso já está feito, o PyGame utiliza a
+  biblioteca SDL, que é feita em C. Existem também implementações de
+  \emph{engines} bem otimzados que são utilizáveis no Python.
+\end{frame}
+
+
+
+
+
+\subsection{Por que PyGame?}
+
+\frame[containsverbatim]{
+  \frametitle{PyGame}
+  \begin{itemize}
+  \item Como o Python, é multiplataforma
+  \item Fácil de utilizar
+  \item Possui bastante recursos
+  \item Rápida o suficiente
+  \end{itemize}
+
+
+  \begin{lstlisting}
+import pygame
+pygame.init()
+screen = pygame.display.set_mode( ( 800, 600 ) )
+image  = pygame.image.load( "minha_imagem.png" )
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT: break
+    screen.fill( ( 0, 0, 0 ) )
+    screen.blit( image, image.get_rect() )
+    pygame.display.flip()
+ \end{lstlisting}
+}
+
+
+
+
+
+\section{Elementos Essenciais do PyGame}
+
+\subsection{Surface}
+
+\frame[containsverbatim]{
+  \frametitle{Surface --- o que é?}
+
+  \lstinline|Surface| são superfícies nas quais se desenha. Podem ser
+  2D ou 3D, residir em memória do sistema ou da placa de vídeo e
+  também ter várias profundidades de cores.
+
+  \begin{lstlisting}
+tamanho    = ( 640, 480 )
+cor        = ( 255, 0, 0 ) # vermelho
+superficie = Surface( tamanho )
+superficie.set_at( ( 10, 20 ), cor )
+superficie.fill( cor, ( 11, 21, 50, 50 ) )
+
+tela = pygame.display.set_mode( tamanho )
+  \end{lstlisting}
+}
+
+\frame[containsverbatim]{
+  \frametitle{Surface --- operações essenciais}
+
+  \begin{description}
+  \item[fill( cor, area )] Preenche uma área com a cor
+  \item[get\_at( posicao )] Pega a cor que está na posição
+  \item[set\_at( posicao, cor )] Muda a cor da superfície na posição
+  \item[blit( origem, posicao, area\_origem )] Copia a parte limitada
+    por \lstinline|area_origem| da superfície \lstinline|origem| para
+    a posição desejada na superfície atual.
+  \end{description}
+}
+
+
+
+
+
+\begin{frame}
+  \frametitle{Surface --- profundidade de cor}
+
+  Em computação representamos uma superfície de desenho como uma
+  matriz de pontos de cor. Dependendo do número de cores possíveis
+  temos uma profundidade de cor e representamos de maneiras
+  diferentes, algumas delas:
+
+  \begin{description}
+  \item[256 cores] Este modo representa 256 cores possíveis e é
+    indexado, isto é, temos uma palheta de cores com índices de 0 a
+    255, cada um com uma cor.
+  \item[24bpp RGB] Também conhecido com 16 milhões de cores. Este modo
+    representa cada cor com 3 bytes (daí o nome \emph{24 bits
+      per pixel}) e no formato RGB utiliza-se o primeiro byte para 256
+    tons de vermelho, o segundo para verde e o terceiro para o azul.
+  \end{description}
+\end{frame}
+
+
+
+
+
+\begin{frame}
+  \frametitle{Surface --- transparências}
+
+  As superfícies suportam 3 tipos de transparência:
+  \begin{description}
+  \item[Colorkey] neste modo uma cor é designada para representar a
+    transparência, isto é, ao fazer o \emph{blit} os pontos com esta
+    cor não serão copiados.
+  \item[Image Alpha] neste modo a superfície como um todo tem um valor
+    de translucidez entre 0 (transparente) e 255 (opaco), ao fazer o
+    \emph{blit} desta superfície em outra cada ponto resultante é uma
+    média da origem com o destino proporcional a este valor. Este modo
+    pode ser utilizado em conjunto com o \emph{colorkey}
+  \item[Per-Pixel Alpha] neste modo cada ponto da superfície tem um
+    componente de Alpha associado que é levado em conta na hora do
+    \emph{blit}. Estas superfícies são chamadas de 32bpp RGBA. Este
+    modo não pode ser utilizado com os dois primeiros.
+  \end{description}
+\end{frame}
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{Surface --- convertendo profundidade de cor}
+
+  Toda vez que se faz um \lstinline|blit()| convertemos a profundidade
+  de cor da superfície de origem para ficar equivalente à superfície
+  de destino, isto é uma operação muito custosa e nem sempre
+  precisamos fazê-la, pois podemos deixar as superfícies já
+  convertidas.
+
+  Eliminando este passo podemos deixar o programa até 6
+  vezes mais rápido!
+
+  \begin{lstlisting}
+sup = sup.convert() # converte para a tela
+img = pygame.image.load("img.png").convert(sup)
+  \end{lstlisting}
+
+  \textbf{Quando não usar:} quando se quer utilizar \emph{per-pixel
+    alpha} não converta para a profundidade de cor da tela, pois ele
+  perderá tal recurso, neste caso utilize \lstinline|convert_alpha()|.
+
+}
+
+
+
+\subsection{Rect}
+
+\frame[containsverbatim]{
+  \frametitle{Rect --- o que é?}
+
+  \lstinline|Rect| representa retângulos, com posição e
+  dimensões. Parece irelevante, mas é uma das classes mais úteis de
+  todo PyGame pois ela fornece operações que são muito utilizadas,
+  facilitando o desenvolvimento do jogo
+
+  \begin{lstlisting}
+r = Rect( ( 10, 10, 50, 100 ) )
+print r.top, r.bottom # 10 110
+print r.left, r.right # 10 60
+print r.midtop, r.midleft # (35, 10) (10, 60)
+print r.center # (35, 60)
+c1 = r.collidepoint( 30, 40 )
+c2 = r.colliderect( ( 0, 0, 100, 200 ) )
+r2 = r.inflate( 10, 10 )
+r2.move_ip( 5, 5 )
+  \end{lstlisting}
+}
+
+\frame[containsverbatim]{
+  \frametitle{Rect --- operações essenciais}
+
+  \begin{description}
+  \item[clamp( area )] retorna um novo retângulo que foi movido para
+    ficar dentro de \lstinline|area|. Útil para limitar movimento
+    dentro de um espaço.
+  \item[clip( area )] retorna um novo retângulo com a \lstinline|area|
+    cortada para caber no retângulo atual.
+  \item[collidepoint( x, y )] verifica se o ponto está dentro do
+    retângulo atual.
+  \item[colliderect( area )] verifica se a \lstinline|area| intercepta
+    o retângulo atual.
+  \item[contains( area )] verifica se a \lstinline|area| está dentro
+    do retângulo atual.
+  \item[inflate( x, y )] retorna um novo retângulo com as dimensões do
+    retângulo atual aumentadas pelos valores passados.
+  \item[move( x, y )] retorna um novo retângulo com as posições do
+    retângulo atual movida pelos valores passados.
+  \end{description}  
+}
+
+
+
+
+
+\subsection{Display}
+
+\frame[containsverbatim]{
+  \frametitle{display --- o que é?}
+
+  O módulo \emph{display} é utilizado para manipular a tela.
+
+  \begin{lstlisting}
+modos = pygame.display.list_modes()
+tela  = pygame.display.set_mode( modos[ 0 ] )
+rect  = pygame.Rect( 0, 0, 10, 10 )
+pygame.display.set_caption( "Teste do PyGame" )
+while tela.get_rect().contains( rect ):
+   tela.fill( ( 0, 0, 0 ) )
+   tela.fill( ( 255, 0, 0 ), rect )
+   rect.move_ip( 10, 10 )
+   pygame.display.flip()
+  \end{lstlisting}
+}
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{display --- operações essenciais}
+  \begin{description}
+  \item[flip()] atualiza o conteúdo da tela toda.
+  \item[get\_surface()] retorna a superfície que representa a tela.
+  \item[list\_modes()] lista possíveis dimensões.
+  \item[set\_caption( titulo )] muda o título da janela.
+  \item[set\_mode( tamanho )] configura a tela para o dado tamanho e
+    retorna a superfície.
+  \item[toggle\_fullscreen()] coloca a janela em tela cheia.
+  \item[update( lista\_retangulos )] atualiza as áreas da tela
+    determinadas por \lstinline|lista_retangulos|.
+  \end{description}
+}
+
+
+
+
+\begin{frame}
+  \frametitle{display --- cuidados especiais}
+  \begin{itemize}
+  \item Toda vez que a janela de um aplicativo PyGame for sobreposta
+    por outra janela, a área ficará negra (suja) até que a tela seja
+    atualizada. É comum ao fazer testes no \emph{prompt} cobrir a
+    janela e depois não se vê o resultado da operação, neste caso
+    descubra a janela e faça \lstinline|pygame.display.flip()|.
+  \item \textbf{Atualize somente as áreas necessárias!} Se quiser
+    aumentar o desempenho do seu jogo, atualize a tela somente nas
+    áreas que você modificou. Por exemplo, se você tem um componente
+    em movimento, apague a imagem da posição antiga (provavelmente
+    desenhando o pedaço da imagem de fundo no local), desenha a imagem
+    na posição nova e atualize somente estas duas áreas. Esta técnica
+    é chamada de \emph{Dirty Rectangles}.
+  \end{itemize}
+  
+
+\end{frame}
+
+
+
+
+\subsection{Draw}
+
+\frame[containsverbatim]{
+  \frametitle{draw --- o que é?}
+  O PyGame tem vários recursos para desenhar nas superfícies.
+  \begin{lstlisting}
+from pygame.draw import line, circle, polygon
+tela = pygame.display.get_surface()
+line( tela, ( 255, 0, 0 ), ( 0, 0 ), ( 10, 10 ) )
+circle( tela, ( 0, 255, 0 ), ( 20, 20 ), 20, 2 )
+rect( tela, ( 0, 0, 255 ), ( 10, 10, 50, 50 ) )
+polygon( tela, ( 255, 255, 0 ),
+         [ ( 200, 200 ), ( 210, 190 ), 
+           ( 220, 200 ), ( 210, 210 ), 
+           ( 220, 220 ), ( 200, 220 ) ] )
+pygame.display.flip()
+  \end{lstlisting}
+}
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{draw --- operações essenciais}
+  \begin{description}
+  \item[line( superficie, cor, inicio, fim, espessura )] desenha uma
+    linha.
+  \item[circle( superficie, cor, posicao, raio, espessura )] desenha
+    um círculo.
+  \item[rect( superficie, cor, retangulo, espessura )] desenha um
+    retângulo.
+  \item[polygon( superficie, cor, lista\_pontos, espessura )] desenha
+    um polígono.
+  \end{description}
+}
+
+
+
+\subsection{Image}
+
+\frame[containsverbatim]{
+  \frametitle{image --- o que é?}
+
+  O PyGame tem recursos para ler e salvar imagens. Por padrão o
+  formato \emph{Bitmap(BMP)} é suportado, porém se a biblioteca
+  SDL\_Image estiver instalada vários outros formatos serão
+  suportados, dentre eles PNG, GIF, JPEG.
+
+  \begin{lstlisting}
+if pygame.image.get_extended():
+   nave = pygame.image.load( "nave.png" )
+else:
+   nave = pygame.image.load( "nave.bmp" )
+pygame.image.save( tela, "screenshot.bmp" )
+  \end{lstlisting}
+}
+
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{image --- operações essenciais}
+
+  \begin{description}
+  \item[load( arquivo )] lê a imagem do arquivo.
+  \item[save( superficie, arquivo )] salva a superfície em um arquivo.
+  \item[get\_extended()] retorna verdadeiro se a biblioteca SDL\_Image
+    estiver instalada.
+  \end{description}
+}
+
+
+
+
+
+\subsection{Event}
+
+\frame[containsverbatim]{
+  \frametitle{event --- o que é?}
+  
+  Módulo que cuida dos eventos dentro do PyGame. Você pode utilizar
+  duas técnicas para trabalhar com eventos:
+  \begin{itemize}
+  \item Usar a fila de eventos. Todo evento causado (movimento do
+    mouse, tecla pressionada, ...) geram eventos que vão para a fila
+    de eventos a qual você pode consultar e tomar as ações
+    necessárias. A vantagem é que nunca se perde um evento, a
+    desvantagem é que pode adicionar latência na resposta e também
+    precisa-se manter estados para combinar ações (ié: duas teclas
+    simultaneamente).
+  \item Consultar diretamente os dispositivos. A vantagem é que pode
+    verificar vários estados ao mesmo tempo, porém tem a desvantagem
+    de perder eventos (ié: o usuário solta o botão do mouse justamente
+    quando você verifica o estado).
+  \end{itemize}
+}
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{event --- usando fila de eventos}
+  \begin{lstlisting}
+from pygame.locals import *
+for event in pygame.event.get():
+    if event.type == QUIT:
+       sys.exit()
+    elif event.type == KEYDOWN:
+       print event.key
+  \end{lstlisting}
+}
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{event --- consultando os dispositivos}
+
+  Nesta técnica você deve utilizar o módulo que trata de cada
+  dispositivo e periodicamente chamar a função \lstinline|pump()| do
+  sistema de eventos para que seu programa não trave.
+
+  \begin{lstlisting}
+from pygame.locals import *
+while not ( pygame.mouse.get_pressed()[ 0 ] or \
+            pygame.key.get_pressed()[ K_SPACE ] ):
+   pygame.event.pump()
+  \end{lstlisting}
+}
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{event --- operações essenciais}
+  \begin{description}
+  \item[poll()] retorna o próximo evento na fila. Caso não exista um
+    evento, será criado um do tipo \lstinline|NOEVENT|.
+  \item[post( evento )] coloca um evento na fila.
+  \item[pump()] caso não utilize a a fila de eventos você deve chamar
+    freqüentemente esta função para fazer a manutenção do programa,
+    caso contrário ele pode travar.
+  \item[get( tipos\_evento )] retorna todos os eventos de um certo
+    tipo na fila.
+  \item[clear()] limpa a fila de eventos.
+  \item[wait()] retorna o próximo evento na fila ou espera até que um
+    novo evento entre, caso ela estiver vazia.
+  \end{description}
+}
+
+
+
+
+
+
+\subsection{Font}
+
+\frame[containsverbatim]{
+  \frametitle{font --- o que é?}
+
+  Módulo para trabalhar com fontes \emph{True
+    Type}. Ele só está habilitado caso você tenha a biblioteca
+  SDL\_ttf instalada.
+
+  \begin{lstlisting}
+tela = pygame.display.set_mode( ( 640, 480 ) )
+if pygame.font:
+   font = pygame.font.Font( "fonte.ttf", 12 )
+   font.set_underline( True )
+   img = font.render( "Olá Mundo", True, 
+                      ( 255, 255, 0 ) )
+   tela.blit( img, ( 0, 0 ) )
+   pygame.display.flip()
+  \end{lstlisting}
+}
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{font --- operações essenciais}
+  Estas são as operações do sub-módulo:
+
+  \begin{description}
+  \item[get\_fonts()] retorna a lista de fontes disponíveis no sistema.
+  \item[match\_font( nome )] retorna o caminho para uma fonte que tenha
+    o nome requerido.
+  \item[get\_default\_font()] retorna o nome do arquivo da fonte padrão
+    do sistema.
+  \item[Font( arquivo, tamanho )] cria uma nova instância de fonte a
+    partir de um arquivo.
+  \item[SysFont( nome, tamanho )] cria uma nova instância de fonte a
+    partir de uma fonte instalada no sistema.
+  \end{description}
+}
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{font.Font --- operações essenciais}
+  Estas são as operações da classe Font:
+  \begin{description}
+  \item[render( texto, antialias, cor\_frente, cor\_fundo )] retorna uma
+    superfície com o texto desenhado.
+  \item[size( texto )] calcula qual será o tamanho da superfície
+    necessária para desenha o texto.
+  \item[set\_italic( opcao )] habilita ou desabilita o texto em itálico.
+  \item[set\_bold( opcao )] habilita ou desabilita o texto em negrito.
+  \item[set\_underline( opcao )] habilita ou desabilita sublinhar o texto.
+  \end{description}
+}
+
+
+
+
+
+\subsection{Transform}
+
+\frame[containsverbatim]{
+  \frametitle{transform --- o que é?}
+  
+  Transform é um módulo para auxiliar modificar superfícies, ele tem
+  operações para rotacionar, espelhar, modificar o tamanho e cortar
+  superfícies.
+
+  \begin{lstlisting}
+img = pygame.image.load( "minha_imagem.png" )
+from pygame.transform import flip, scale, rotate
+ponta_cabeca = flip( img, False, True )
+inclinada    = rotate( img, 45 )
+
+novo_tam     = img.get_rect().inflate( 5, 5 )
+aumentada    = scale( img, novo_tam.size )
+  \end{lstlisting}
+}
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{transform --- operações essenciais}
+\begin{description}
+\item[flip( superficie, x, y )] espelha a imagem horizontal e
+  verticalmente, dependendo se x e y forem verdadeiros ou falsos.
+\item[rotate( superficie, angulo )] rotaciona a imagem
+\item[scale( superficie, tamanho )] aumenta ou diminui uma imagem.
+\end{description}
+}
+
+
+
+
+
+\subsection{Mixer}
+
+\frame[containsverbatim]{
+  \frametitle{mixer --- o que é?}
+
+Módulo para trabalhar com sons e canais de reprodução. Por padrão
+existem 8 canais para reprodução simultânea.
+
+\begin{lstlisting}
+from pygame.locals import *
+musica = pygame.mixer.Sound( "musica_fundo.wav" )
+efeito = pygame.mixer.Sound( "efeito.wav" )
+aviso  = pygame.mixer.Sound( "aviso.wav" )
+musica.play( -1 )
+while True:
+   for e in pygame.event.get( [ KEYDOWN ] ):
+      if   e.key == K_SPACE:
+         efeito.play()
+      elif e.key == K_ESCAPE:
+         musica.fadeout( 1500 )
+         aviso.play()
+\end{lstlisting}
+}
+
+
+\frame[containsverbatim]{
+  \frametitle{mixer --- operações essenciais}
+
+\begin{description}
+\item[Sound( arquivo )] cria uma nova instância de objeto de som.
+\item[fadeout( tempo )] demora o tempo requerido para deixar todos os
+  canais mudos, o volume vai abaixando gradualmente.
+\item[pause()] pára temporariamente a reprodução de todos os canais.
+\item[stop()] pára a reprodução de todos os canais.
+\item[unpause()] restaura a reprodução dos canais parados.
+\end{description}
+}
+
+
+
+
+
+
+
+
+\frame[containsverbatim]{
+  \frametitle{mixer.Sound --- operações essenciais}
+
+Estas são as operações essenciais da classe Sound:
+
+\begin{description}
+\item[fadeout( tempo )] demora o tempo requerido para deixar o canal
+  que reproduz este som mudo, o volume vai abaixando gradualmente.
+\item[get\_length()] retorna quantos segundos tem este som.
+\item[get\_volume()] retorna o valor da altura do som.
+\item[play( repeticoes )] inicia a reprodução do som.
+\item[set\_volume( valor )] configura a altura do som, de 0,0 a 1,0.
+\item[stop()] pára a reprodução do som.
+\end{description}
+}
+
+
+
+
+
+\subsection{Clock}
+
+\frame[containsverbatim]{
+  \frametitle{Clock --- o que é?}
+
+  Classe para trabalhar com tempo, atrasar a execução (e
+  consequentemente limitar os quadros por segundo) e também obter
+  tempo entre os quadros.
+
+  \begin{lstlisting}
+clock = pygame.time.Clock()
+FPS   = 60
+while True:
+   clock.tick( FPS )
+   print "Quadros por segundo:", clock.get_fps()
+  \end{lstlisting}
+
+  A operação mais usada é \lstinline|tick( atraso )| que serve para
+  manter uma taxa de quadros por segundo.
+}
+
+
+
+
+
+\section{Sprite e Grupos}
+
+\begin{frame}
+  \frametitle{sprite --- O que é?}
+
+  \emph{Sprite} é uma imagem bi-dimensional que faz parte de uma cena
+  maior, isto é, os componentes que aparecem no jogo.
+
+  O PyGame traz um módulo com vários utilitários para trabalhar com
+  \emph{Sprites} e tornar o desenvolvimento muito mais fácil. As
+  classes básicas são:
+
+  \begin{description}
+  \item[Sprite] deve ser herdada pelos componentes do seu jogo.
+  \item[Group] serve para agrupar \emph{Sprites}, existem
+    especializações desta classe para ajudar com tarefas rotineiras.
+  \end{description}
+\end{frame}
+
+
+\subsection{Sprite}
+
+\begin{frame}
+  \frametitle{sprite.Sprite --- o que é?}
+
+  \lstinline|Sprite| é a classe básica que deve ser especializada
+  pelos componentes do seu jogo. Ela implementa métodos necessários
+  pelas classes de grupo e mantém a lista de grupos a qual pertence.
+
+  Um \lstinline|Sprite| só é considerado ``vivo'' se está dentro de
+  um grupo.
+\end{frame}
+
+
+
+
+
+\begin{frame}
+  \frametitle{sprite.Sprite --- operações essenciais}
+  \begin{description}
+  \item[add( lista\_grupos )] adiciona o Sprite à lista de grupos
+  \item[alive()] retorna verdadeiro se está vivo, isto é, dentro de
+    algum grupo
+  \item[groups()] retorna a lista de grupos em que este Sprite está.
+  \item[kill()] remove o Sprite de todos os grupos
+  \item[remove( lista\_grupos )] remove o Sprite da lista de grupos.
+  \item[update()] função que não faz nada, deve ser modificada pelas
+    classes especializadas para atualizar o \emph{sprite}
+    (movimentar, modificar a imagem, ...).
+  \end{description}
+\end{frame}
+
+
+
+
+\subsection{Group}
+
+
+\begin{frame}
+  \frametitle{sprite.Group --- o que é?}
+
+  \lstinline|Group| é a classe básica que contém \emph{sprites},
+  existem várias especializações:
+
+  \begin{description}
+  \item[GroupSingle] mantém apenas o último \emph{sprite} adicionado.
+  \item[RenderUpdates] implementa o método
+    \lstinline|draw( superficie )| que desenha todos os  
+    \emph{sprites} do grupo na superfície e retorna a lista de 
+    áreas modificadas, então podemos utilizar
+    a técnica de \emph{Dirty Rectangles} apenas fazendo:
+    \lstinline|pygame.display.update( meugrupo.draw( tela ) )|.
+  \item[OrderedUpdates] especialização de RenderUpdates, mas faz as
+    atualizações na ordem em que os \emph{sprites} foram adicionados.
+  \end{description}
+\end{frame}
+
+
+
+
+\begin{frame}
+  \frametitle{sprite.Group --- operações essenciais}
+  
+  \begin{description}
+  \item[add( lista\_sprites )] adiciona a lista de \emph{Sprites} ao
+    grupo.
+  \item[clear( superfice, fundo )] limpa a superfície, para isto copia
+    os pedaços que foram ``sujos'' anteriormente do fundo.
+  \item[empty()] remove todos os \emph{Sprites} do grupo.
+  \item[has( sprite )] verifica se o \emph{Sprite} está no grupo.
+  \item[remove( lista\_sprites )] remove a lista de \emph{Sprites} do
+    grupo.
+  \item[sprites()] retorna os \emph{Sprites} contidos neste grupo.
+  \item[update( *args )] chama \lstinline|update( *args )| em todos os
+    \emph{Sprites} do grupo.
+  \end{description}
+\end{frame}
+
+
+
+\frame[containsverbatim]{
+  \frametitle{Exemplo: Movimentando uma Bola}
+  \begin{lstlisting}
+#!/usr/bin/env python
+
+from copy import copy
+import pygame
+from pygame.locals import *
+from pygame.sprite import Sprite, RenderUpdates
+\end{lstlisting}
+}
+
+
+\frame[containsverbatim]{
+  \begin{lstlisting}
+class Bola( Sprite ):
+  def __init__( self, pos, *grupos ):
+    Sprite.__init__( self, *grupos )
+    self.rect = Rect( 0, 0, 100, 100 )
+    self.rect.center = pos
+    # Cria imagem
+    r = self.rect
+    self.image = pygame.Surface( r.size )
+    self.image.set_colorkey( ( 0, 0, 0 ) )
+    self.image.fill( ( 0, 0, 0 ) )
+    pygame.draw.circle( self.image,
+                        ( 255, 255, 255 ),
+                        ( r.width / 2,
+                          r.height / 2 ),
+                          r.width / 2 )
+  # __init__()
+  def move( self, x, y ):
+    self.rect.move_ip( x, y )
+  # move()
+\end{lstlisting}
+}
+
+
+\frame[containsverbatim]{
+  \begin{lstlisting}
+# Configurações iniciais
+pygame.init()
+tela  = pygame.display.set_mode( ( 640, 480 ) )
+grupo = RenderUpdates()
+bola  = Bola( ( 0, 0 ), grupo )
+clock = pygame.time.Clock()
+
+fundo = pygame.Surface( tela.get_size() )
+fundo.fill( ( 0, 0, 255 ) )
+tela.blit( fundo, ( 0, 0 ) )
+pygame.display.flip()
+
+key = { K_UP: False, K_DOWN: False,
+        K_LEFT: False, K_RIGHT: False }
+\end{lstlisting}
+}
+
+
+\frame[containsverbatim]{
+  \begin{lstlisting}
+# Laço principal
+while True:
+  clock.tick( 24 )
+  # Trata eventos
+  for e in pygame.event.get( [ KEYUP, KEYDOWN ] ):
+    valor = ( e.type == KEYDOWN )
+    if   e.key == K_ESCAPE:
+       raise SystemExit, "Fim."
+    elif e.key in key.keys():
+       key[ e.key ] = valor
+  # Movimenta a bola de acordo com as teclas
+  if key[ K_UP ]:    bola.move(   0, -10 )
+  if key[ K_DOWN ]:  bola.move(   0,  10 )
+  if key[ K_LEFT ]:  bola.move( -10,   0 )
+  if key[ K_RIGHT ]: bola.move(  10,   0 )
+  
+  grupo.clear( tela, fundo )
+  pygame.display.update( grupo.draw( tela ) )
+  \end{lstlisting}
+}
+
+
+
+
+
+\begin{frame}
+  \frametitle{Detectando colisões}
+
+  Um dos recursos mais utilizados no desenvolvimento de jogos é
+  detectar colisões e o PyGame torna esta tarefa fácil com as funções:
+
+  \begin{description}
+  \item[spritecollide( sprite, grupo, mate )] detecta a colisão do
+    \emph{Sprite} com os elementos do grupo. Caso \lstinline|mate|
+    for verdadeira executa o método \lstinline|kill()| dos
+    \emph{sprites} que colidiram. Esta função retorna uma lista com os
+    elementos afetados.
+  \item[groupcollide( grupo1, grupo2, mate1, mate2 )] detecta a
+    colisão dos \emph{Sprites} do \lstinline|grupo1| contra os do
+    \lstinline|grupo2| e executa o método \lstinline|kill()| nos
+    elementos baseado nos valores dos parâmetros \lstinline|mate1| e
+    \lstinline|mate2|. Esta função retorna um dicionário no qual as
+    chaves são elementos do \lstinline|grupo1| e os
+    valores são listas de elementos do \lstinline|grupo2| com os quais
+    eles colidiram.
+  \end{description}
+
+
+\end{frame}
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Referências e Materiais de Apoio}
+
+\subsection{Tutorial e Exemplos}
+
+\begin{frame}
+  \frametitle{Tutorial e Exemplos}
+
+  \begin{itemize}
+    \item Em \url{http://www.gustavobarbieri.com.br/jogos/} existem
+      alguns códigos de jogos simples porém funcionais que podem ser
+      utilizados como base de novos projetos.
+
+    \item O tutorial passo a passo de como planejar e construir um
+      jogo pode ser encontrado em:
+      \url{http://www.gustavobarbieri.com.br/jogos/jogo/doc/}. Ele
+      aborda como separar os elementos do jogo e com isso conseguir
+      uma plataforma fácil de manter e extender.
+    \end{itemize}
+\end{frame}
+
+
+
+\subsection{Referências}
+
+\begin{frame}
+  \frametitle{Referências}
+  \begin{itemize}
+  \item Python: \url{http://www.python.org/}
+  \item PyGame: \url{http://www.pygame.org/}
+  \item A Newbie Guide to pygame:
+    \url{http://www.pygame.org/docs/tut/newbieguide.html}
+  \item Introdução ao Pygame: \url{http://www.pygame.org/docs/tut/intro/intro.html}
+  \item Dicas de Performance para Python:
+    \url{http://www.python.org/moin/PythonSpeed/PerformanceTips}
+  \item Introdução ao Módulo Sprite do PyGame: \url{http://www.pygame.org/docs/tut/SpriteIntro.html}
+  \end{itemize}
+\end{frame}
+
+
+
+\subsection{Contato}
+
+\begin{frame}
+  \frametitle{Contato}
+
+  \begin{center}
+    {\huge\bfseries Gustavo Sverzut Barbieri}    
+  
+    \vspace{2em}
+    
+    \begin{tabular}{rl}
+      Email:& \href{mailto:barbieri@gmail.com}{barbieri@gmail.com}\\
+      Website:& \url{http://www.gustavobarbieri.com.br}\\
+      ICQ:& 17249123\\
+      MSN:& barbieri@gmail.com\\
+      Jabber:& gsbarbieri@jabber.org\\
+    \end{tabular}
+  \end{center}
+
+    \vspace{2em}
+    Obtenha esta palestra em: \url{http://palestras.gustavobarbieri.com.br/pygame/}
+    
+\end{frame}
+
+
+
+
+\end{document}

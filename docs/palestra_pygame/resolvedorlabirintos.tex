@@ -1,0 +1,410 @@
+% -*- mode: latex -*-
+% -*- coding: latin-1 -*-
+
+\documentclass{beamer}
+
+\usepackage{beamerthemesplit}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage[brazil]{babel}
+\usepackage[latin1]{inputenc}
+
+\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps}
+\usepackage{amsmath,amssymb}
+
+
+% \usetheme{Antibes} % low layout overhead  (just top)
+% \usetheme{Berkeley} % medium layout overhead
+% \usetheme{Berlin}
+% \usetheme{Bergen}
+ \usetheme{Boadilla}  % very low layout overhead
+% \usetheme{Copenhagen}
+% \usetheme{Darmstadt}
+% \usetheme{Dresden}
+% \usetheme{Frankfurt}
+% \usetheme{Goettingen} % great
+% \usetheme{Hannover}
+% \usetheme{Ilmenau}
+% \usetheme{JuanLesPins}
+% \usetheme{Luebeck}
+% \usetheme{Madrid}
+% \usetheme{Malmoe}
+% \usetheme{Marburg} % great
+% \usetheme{Montpellier}
+% \usetheme{PaloAlto}
+% \usetheme{Pittsburgh}
+% \usetheme{Rochester}
+% \usetheme{Singapore}
+% \usetheme{Szeged}
+% \usetheme{Warsaw} % great
+% \usetheme{Darmstadt}
+
+
+%\usefonttheme{structurebold}
+\usefonttheme{professionalfonts}
+
+% \usecolortheme{albatross} % dark blue
+% \usecolortheme{beetle} % grey + blue
+% \usecolortheme{crane} % yellow
+% \usecolortheme{default}
+ \usecolortheme{dolphin} % light purple + white
+% \usecolortheme{dove} % b&w, excellent to print
+% \usecolortheme{fly} % all grey
+% \usecolortheme{lily} % dark blue
+% \usecolortheme{orchid} % dark blue
+% \usecolortheme{rose} % yet another blue
+% \usecolortheme{seagull} % white and grey
+% \usecolortheme{seahorse} % light purple
+% \usecolortheme{whale}
+
+
+\title{Programação de Jogos em Python}
+\subtitle{Exemplo Prático - Resolvedor de Labirintos}
+\author{Gustavo Sverzut Barbieri}
+\institute{GPSL - UNICAMP}
+
+
+\begin{document}
+
+  \lstset{
+    frame=single,
+    showstringspaces=false,  
+    extendedchars=true,
+    language=Python,
+    backgroundcolor=\color[rgb]{0.95,0.95,0.95},
+    rulecolor=\color[rgb]{0.3,0.3,0.3},
+    basicstyle=\color[rgb]{0,0,0}\tiny\upshape\ttfamily,
+    commentstyle=\color[rgb]{0.5,0.0,0.0}\tiny\rmfamily\itshape,
+    keywordstyle=\color[rgb]{0.7,0.0,0.8}\tiny\bfseries,
+    stringstyle=\color[rgb]{0.6,0.4,0.4}\tiny,
+    identifierstyle=\color[rgb]{0.2,0.2,0.8}\tiny
+ }
+
+
+
+\frame{\titlepage}
+
+
+\frame[containsverbatim]{
+Esta apresentação é uma explicação mais detalhada sobre o código que
+pode ser encontrado em:
+
+\url{http://www.gustavobarbieri.com.br/labirinto_grafico.py}
+
+\vspace{3em}
+Nem todas as partes do código original estão incluídas aqui.
+}
+
+
+\frame[containsverbatim]{
+  \frametitle{Importando módulos necessários}
+
+\begin{lstlisting}
+import pygame
+from pygame.locals import *
+from pygame.sprite import Sprite, RenderUpdates
+\end{lstlisting}
+
+\begin{itemize}
+  \item Incluímos todos os símbolos de pygame.locals para o espaço de
+    nomes (\emph{namespace}) atual.
+  \item Também importamos o Sprite e RenderUpdates para economizar
+  digitação.
+\end{itemize}
+}
+
+
+\frame[containsverbatim]{
+  \frametitle{Função para desenhar retângulos}
+
+\begin{lstlisting}
+def desenha_quadrado( tamanho, cor ):
+    img = pygame.Surface( tamanho )
+
+    cinza = Color( "#808080" )
+    cor1 = pygame.color.add( cor, cinza )
+    cor2 = pygame.color.subtract( cor, cinza )
+
+    r = Rect( ( 0, 0 ), tamanho )
+    r.inflate_ip( -2, -2 )
+    r.topleft = ( 1, 1 )
+
+    img.fill( cor )
+
+    line = pygame.draw.line
+    line( img, cor1, r.topleft, r.topright )
+    line( img, cor1, r.topleft, r.bottomleft )
+    line( img, cor2, r.bottomleft, r.bottomright )
+    line( img, cor2, r.bottomright, r.topright )
+
+    return img
+# desenha_quadrado()
+\end{lstlisting}
+
+}
+
+
+
+\frame[containsverbatim]{
+  \frametitle{Objeto do jogo ``Quadrado''}
+
+\begin{lstlisting}
+class Quadrado( Sprite ):
+    grupos = None # Grupos ao qual este sprite pertence
+                  # depois esta variavel de classe sera atribuida
+                  # para lembrar dos objetos nao desenhados
+    tamanho = ( 50, 50 )
+    def __init__( self, pos=( 0, 0 ) ):
+        Sprite.__init__( self, self.grupos )
+        self.rect = Rect( pos, self.tamanho )
+    # __init__()
+# Quadrado
+\end{lstlisting}
+
+\begin{itemize}
+  \item \textbf{Nunca se esqueça de chamar
+    \lstinline|Sprite.__init__|!}
+  \item \lstinline|Sprite.__init__| pode receber uma lista de grupos a
+  qual este Sprite pertence. Nós usaremos o atributo de
+  \textbf{classe}\footnote{Apesar de usarmos \lstinline|self.grupos|,
+  isso foi feito devido ao método de resolução de atributos do Python,
+  primeiro procura-se na instância, depois nas classes que compõe a
+  instância.}, que será atribuído mais tarde, assim todos os
+  Sprites se adicionam automaticamente ao grupo correto.
+\end{itemize}
+}
+
+\frame[containsverbatim]{
+  \frametitle{Objetos do jogo ``Parede'', ``Vazio'', ...}
+
+\begin{lstlisting}
+class Parede( Quadrado ):           pass
+class Vazio( Quadrado ):            pass
+class Caminho( Quadrado ):          pass
+class Entrada( Quadrado ):          pass
+class Saida( Quadrado ):            pass
+class CaminhoErrado( Caminho ):     pass
+class CaminhoCerto( Caminho ):      pass
+class CaminhoPercorrido( Caminho ): pass
+\end{lstlisting}
+
+\begin{itemize}
+  \item Usa-se uma hierarquia de classes para facilitar mais tarde: Um
+  caminho errado ainda é um caminho, um caminho certo também.
+\end{itemize}
+}
+
+
+\frame[containsverbatim]{
+  \frametitle{Lendo imagens para o labirinto}
+
+\begin{lstlisting}
+    def __le_imagens( self ):
+        """Lê as imagens para cada tipo de peça.
+
+        Usa-se variavel de classe para evitar que cada objeto tenha uma copia
+        da mesma imagem, economizando memoria.
+        """
+        t = self.tam_peca
+
+        if t is None:
+            raise Exception( "Você deve usar __arruma_posicoes() primeiro!" )
+        
+        Quadrado.tamanho = t
+
+        # Lê imagens:
+        Parede.image            = desenha_quadrado( t, Color( "gray35" ) )
+        Caminho.image           = desenha_quadrado( t, Color( "wheat" ) )
+        Entrada.image           = desenha_quadrado( t, Color( "magenta" ) )
+        Saida.image             = desenha_quadrado( t, Color( "green" ) )
+        CaminhoCerto.image      = desenha_quadrado( t, Color( "cyan" ) )
+        CaminhoErrado.image     = desenha_quadrado( t, Color( "red" ) )
+        CaminhoPercorrido.image = desenha_quadrado( t, Color( "yellow" ) )
+        Vazio.image             = pygame.Surface( t )
+        Vazio.image.set_colorkey( Color( "black" ) )
+        Vazio.image.fill( Color( "black" ) )
+    # __le_imagens()
+\end{lstlisting}
+As atribuições de imagens são feitas para a \textbf{classe} pois...
+}
+
+
+\frame[containsverbatim]{
+  \frametitle{Lendo imagens para o labirinto}
+  \begin{itemize}
+  \item Usamos variáveis de classe para evitar que cada instância
+    carrege uma cópia, economizando memória
+  \item Se precisarmos mudar de todas as instâncias, é só mudar esta
+    variável de classe.
+  \item Se quisermos que uma certa instância tenha uma imagem
+    diferente, é só atribuir à instância e este valor se sobrepõe ao
+    da classe na resolução dos atributos. (Maior Flexibilidade)
+  \end{itemize}
+}
+
+
+\frame[containsverbatim]{
+  \frametitle{Desenhando o Labirinto}
+
+\begin{lstlisting}
+    def desenhe( self, tudo=False ):
+        tela = self.tela
+        nao_desenhados = self.nao_desenhados
+        if tudo:
+            for l in self.mapa:
+                for p in l:
+                    tela.blit( p.image, p )
+        else:
+            nao_desenhados.draw( self.tela )
+
+        nao_desenhados.empty()
+    # desenhe()
+\end{lstlisting}
+
+\begin{itemize}
+\item O uso de sprites e grupos facilita operações como desenhar
+  apenas o que mudou.
+\item Uma instância de Quadrado, quando criada, vai automaticame para
+  o grupo de não desenhados, pois atribuímos este grupo a
+  \lstinline|Quadrado.grupos|.
+\item Como sempre desenhamos todos os quadrados não desenhados, após a
+  operação esvaziamos o grupo.
+\end{itemize}
+}
+
+\frame[containsverbatim]{
+  \frametitle{O Jogo}
+
+\begin{lstlisting}
+class Jogo( object ):
+    FPS = 24
+    RESOLVE_PASSOS_POR_SEG = 0
+
+    def __init__( self, mapa, tamanho=( 800, 600 ) ):
+        self.clock = pygame.time.Clock()
+        self.tela  = pygame.display.set_mode( tamanho )
+        self.mapa  = mapa
+        self.le_labirinto()
+    # __init__()
+
+
+    def le_labirinto( self ):
+        self.labirinto = Labirinto( self.tela, self.mapa )
+    # le_labirinto()
+\end{lstlisting}
+}
+
+\frame[containsverbatim]{
+  \frametitle{O Jogo: Parando e Atualizando a tela}
+
+\begin{lstlisting}
+    def termine( self ):
+        raise StopIteration
+    # termine()
+
+
+    def atualize( self, tudo=False ):
+        if tudo:
+            pygame.display.flip()
+        else:
+            pygame.display.update()
+    # atualize()
+\end{lstlisting}
+
+\begin{itemize}
+\item Note que devido à falta de argumentos para
+  \lstinline|pygame.display.update()|, este tem o mesmo efeito
+  que \lstinline|pygame.display.flip()|: atualiza a tela inteira.
+\item Em uma implementação futura poderíamos lembrar as áreas que
+  mudaram, resultantes do \lstinline|nao_desenhados.draw()| e passar
+  como argumento para o \lstinline|pygame.display.update()|,
+  economizando ciclos do processador.
+\end{itemize}
+
+}
+
+\frame[containsverbatim]{
+  \frametitle{Tratando Eventos}
+
+\begin{lstlisting}
+    def trata_eventos( self ):
+        for e in pygame.event.get( [ KEYDOWN, QUIT, ACTIVEEVENT ] ):
+            if   e.type == QUIT:
+                self.termine()
+
+            elif e.type == KEYDOWN:
+                if   e.key == K_F2:
+                    self.le_labirinto()
+
+                elif e.key == K_F3:
+                    def callback( estagio ):
+		        pass # removido para caber no slide
+                    # callback()
+                    self.labirinto.resolve( callback )
+                    self.labirinto.desenhe()
+                    self.atualize()
+
+                elif e.key == K_ESCAPE:
+                    self.termine()
+
+            elif e.type == ACTIVEEVENT:
+                self.labirinto.desenhe( True )
+                self.atualize( True )
+    # trata_eventos()
+\end{lstlisting}
+}
+
+\frame[containsverbatim]{
+  \frametitle{O Jogo: Laço Principal}
+
+\begin{lstlisting}
+    def rode( self ):
+        try:
+            # ActiveEvent faz desenhar a tela de novo
+            pygame.event.post( pygame.event.Event( ACTIVEEVENT ) )
+            while True:
+                self.clock.tick( self.FPS )
+                self.trata_eventos()
+                #self.labirinto.desenhe()
+                self.atualize()
+        except StopIteration:
+            return
+    # rode()
+# Jogo
+\end{lstlisting}
+}
+
+\frame[containsverbatim]{
+  \frametitle{E assim se faz um jogo...}
+
+  \begin{center}
+  {\Huge Dúvidas???}
+  \end{center}
+}
+
+
+\begin{frame}
+  \frametitle{Contato}
+
+  \begin{center}
+    {\huge\bfseries Gustavo Sverzut Barbieri}    
+  
+    \vspace{2em}
+    
+    \begin{tabular}{rl}
+      Email:& \href{mailto:barbieri@gmail.com}{barbieri@gmail.com}\\
+      Website:& \url{http://www.gustavobarbieri.com.br}\\
+      ICQ:& 17249123\\
+      MSN:& barbieri@gmail.com\\
+      Jabber:& gsbarbieri@jabber.org\\
+    \end{tabular}
+  \end{center}
+
+    \vspace{2em}
+    Obtenha esta palestra em: \url{http://palestras.gustavobarbieri.com.br/pygame/}
+    
+\end{frame}
+
+
+\end{document}

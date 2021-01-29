@@ -1,0 +1,956 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0050)https://old.gustavobarbieri.com.br/jogos/jogo/doc/ -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pt-BR" lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="description" content="Introdução à Programação de Jogos">
+    <title>Introdução à Programação de Jogos</title>
+    <style type="text/css">
+      body { 
+         font-family: sans-serif;
+      }      
+      p { 
+         text-indent: 30px;
+	 width: 80%;
+	 text-align: justify;
+      }
+      dt {
+         font-weight: bold;
+      }
+      dd, li {
+         width: 70%;
+	 text-align: justify;
+      }
+      code {
+         white-space: nowrap;
+	 font-family: monospace;
+	 margin-left: 3px;
+	 margin-right: 3px;
+      }
+      code.func {
+         color: #0000dd;
+	 background: inherit;
+      }
+      code.class {
+         color: #6600ff;
+	 background: inherit;
+      }
+      code.var {
+         color: #d96633;
+	 background: inherit;
+      }
+      h1 {
+         padding-top: 50px;
+         border-bottom: 2px solid #555555;
+	 cursor: pointer;
+      }
+      h2 {
+         padding-top: 20px;
+	 margin-left: 9%;
+         border-bottom: 1px solid #a9a9a9;
+	 cursor: pointer;
+      }
+      div.h2 {
+         margin-left: 9%;
+	 padding-left: 1%;
+	 border-left: 1px solid #d9d9d9;
+      }
+      div.img {
+         width: 80%;
+	 margin: 2px;
+	 cursor: pointer;
+      }
+      div.img p:before {
+        content: "Figura: ";
+	font-weight: bold;
+      }
+      div.img p {
+         text-indent: 0;
+         margin: 0px;
+	 padding: 0px;
+	 width: 100%;
+      }
+
+      div#title {
+         position: fixed;
+	 right: 10px;
+	 top:  10px;
+	 font-family: sans-serif;
+	 font-size: 4em;
+	 font-weight: bold;
+	 color: #ff0000;
+	 cursor: pointer;
+	 z-index: 1;
+	 opacity: 0.3;
+
+	 // Pode gerar erro para w3c, mas eh necessario para IE e konqueror:
+	 filter:alpha( opacity=50 );
+	 -khtml-opacity: 0.3;
+      }
+      span.smallb1 {
+         font-size: small;
+	 display: block;
+	 text-align: right;
+	 color: #333333;
+	 margin-bottom: -2em;
+      }
+      span.smallb2 {
+         font-size: small;
+	 display: block;
+	 text-align: right;
+	 color: #333333;
+      }
+      span.email1:before {
+         content: "<";
+      }
+      div#author p {
+         text-align: center;
+	 font-size: small;
+	 color: #666666;
+	 letter-spacing: 2pt;
+	 word-spacing: 5pt;
+	 margin-top: 3em;
+	 padding: 1em;
+	 
+      }
+      span.email2:before {
+         content: "@";
+      }
+      span.email2:after {
+         content: ">";
+      }
+-->
+    </style>
+    <script type="text/javascript">
+<!--
+      var browser = null;
+      function whichBrowser() {
+         an = navigator.appName;
+	 prod = navigator.product;
+         if ( an.indexOf( "Microsoft" ) >= 0 )
+	 {  return "ie"; }
+	 else if ( ( prod == "Gecko" ) || ( an.indexOf( "Netscape" ) >= 0 ) )
+	 { return "mozilla"; }
+	 else if ( an.indexOf( "Konqueror" ) >= 0 )
+	 { return "konqueror"; }
+	 else { return "unknow"; }
+      }
+      browser = whichBrowser();
+	 
+
+
+
+
+      if ( document.getElementById ) {
+
+
+         function getElement( e ) {
+	    return document.getElementById( e )
+	 }
+
+
+         function getStyle( e ) {
+	    return getElement( e ).style;
+         }
+
+
+	 function hide( e ) {
+	    getStyle( e ).display="none";
+	 }
+
+
+	 function unhide( e ) {
+	    getStyle( e ).display="block";
+	 }
+
+
+	 function setOpacity( e, v ) {
+	    v = parseFloat( v );
+	    if ( browser == "mozilla" ) {
+	       getStyle( e ).opacity = v;
+            } else if ( browser == "konqueror" ) {
+	       getStyle( e ).KhtmlOpacity = v;
+	    } else if ( browser == "ie" ) {
+               getElement( e ).filters.alpha.opacity = parseInt( v * 100 );
+	    }
+	 }
+
+
+         function toggleFontStyle( e ) {
+	    s = getStyle( e );
+	    if ( s.fontStyle != "italic" ) {
+	       s.fontStyle = "italic";
+	    } else {
+	       s.fontStyle = "normal";
+	    }
+	 }
+         
+         function toggleFontWeight( e ) {
+	    s = getStyle( e );
+	    if ( s.fontWeight != "bold" ) {
+	       s.fontWeight = "bold";
+	    } else {
+	       s.fontWeight = "normal";
+	    }
+	 }
+	 
+	 function toggleBorder( e ) {
+	   s = getStyle( e );
+	   if ( s.borderStyle.indexOf( "dotted" ) < 0 ) {
+	      s.borderStyle = "dotted";
+	      s.borderWidth = "1px";
+	   } else {
+	      s.borderStyle = "none";
+	      s.borderWidth = "1px";
+	   }
+	 }
+         
+
+	 function fadeOut( e, v ) {
+	    if ( v == undefined ) v = 1.0;
+	    v = parseFloat( v ) - 0.2
+	    setOpacity( e, v );
+	    if ( v > 0 ) {
+               setTimeout( 'fadeOut( "' + e + '", ' + v + ' ) ', 30 );
+	    } else {
+	       hide( e );
+	    }
+	 }
+
+	 function fadeIn( e, v ) {
+	    if ( v == undefined ) v = 0.0;
+	    v = parseFloat( v ) + 0.2
+	    setOpacity( e, v );
+	    if ( v < 1.0 ) {
+               setTimeout( 'fadeIn( "' + e + '", ' + v + ' ) ', 30 );
+	    }
+	 }
+
+
+	 function toggle( e ) {
+	    if ( getStyle( e ).display != "none" )
+	    { 	
+               fadeOut( e );	       
+	    }
+	    else { 
+               unhide( e );
+	       fadeIn( e );
+	    }
+	 }
+
+
+	 function hToggle( h ) {
+	   toggleFontStyle( "h-" + h );
+	   toggle( h );
+	 }
+
+
+         function imgToggle( img ) {
+	   toggleFontStyle( "caption-" + img );
+	   toggleFontWeight( "caption-" + img );
+	   toggle( "img-" + img );
+	   toggleBorder( "div-" + img );
+	 }
+
+      } else {
+
+
+
+         function showoff() {
+	    window.alert( "Your browser (" + navigator.appName + 
+     	                  ") doesn't support getElementById()!" );
+	    return true;
+	 }
+	 function hide( e ) {
+	    showoff();
+	 }
+	 function show( e ) {
+	    showoff();
+	 }
+	 function setOpacity( e, v ) {
+	    showoff();
+	 }
+	 function imgToggle( e ) {
+	    showoff();
+	 }
+
+      }
+    </script>
+  </head>
+  
+  <body>
+    <div id="title" onclick="hide( &#39;title&#39; )">
+      <span class="smallb1">Programação de</span> Jogos
+      <span class="smallb2">Gustavo Sverzut Barbieri</span>
+    </div>
+    <h1 id="h-introducao" onclick="hToggle( &#39;introducao&#39; )">Introdução</h1>
+    <div id="introducao" class="h1">
+      <p>
+	Este curso apresentará a implementação passo a passo de um jogo
+	de nave espacial no estilo <em>"side scrolling"</em>, porém os
+	conceitos se aplicam para todos os jogos 2-D e até mesmo os 3-D
+	(porém a técnica de mostrar as imagens é diferente). 
+      </p>
+      <p>
+	A implementação usará a linguagem de programação <a href="http://www.python.org/">Python</a> e a biblioteca <a href="http://www.pygame.org/">PyGame</a> devido a facilidade de
+	implementação e ao caráter multi-plataforma de ambos. Apesar da
+	implementação ser em uma linguagem orientada a objetos, será
+	indicado como proceder em uma linguagem procedural, portanto
+	um programador de C ou Pascal conseguirá compreender os
+	conceitos.	
+      </p>
+      <p>
+	Para uma abordagem mais completa sobre PyGame e a parte
+	técnica da programação de jogos, vide <a href="http://palestras.gustavobarbieri.com.br/pygame/">http://palestras.gustavobarbieri.com.br/pygame/</a>,
+	documento no qual eu descrevo as APIs.
+      </p>
+      <p>
+	O código fonte do jogo se encontra em <a href="http://www.gustavobarbieri.com.br/jogos/jogo.tar.gz">http://www.gustavobarbieri.com.br/jogos/jogo.tar.gz</a>. 
+	<strong>Você deverá acompanhar o curso olhando no
+	conteúdo deste arquivo!</strong>
+      </p>
+      
+      <h2 id="h-recursos" onclick="hToggle( &#39;recursos&#39; )">
+	Recursos Utilizados 
+      </h2>
+      <div id="recursos" class="h2">
+	<p>
+	  Neste documento utilizarei das seguintes notações de cores:
+	</p>
+	<dl>
+	  <dt><code class="class">Classe</code></dt>
+	  <dd>representa uma classe.</dd>
+	  
+	  <dt><code class="func">função</code></dt>
+	  <dd>representa uma função ou método.</dd>
+	  
+	  <dt><code class="var">variável</code></dt>
+	  <dd>representa uma variável ou atributo.</dd>
+	  
+	</dl>
+	<p>
+	  Este texto utiliza-se de recursos 
+	  <abbr title="Dynamic HTML">DHTML</abbr>, os título de seção
+	  e imagens são <em>clicáveis</em> e se expandem/contraem,
+	  facilitando assim a leitura do texto. É recomendado que após
+	  as imagens sejam vistas estas sejam contraídas para não
+	  atrapalharem.
+	</p>
+      </div>
+    </div>
+    
+    <h1 id="h-a01" onclick="hToggle( &#39;a01&#39; )">
+      a01: O Básico de Qualquer Jogo
+    </h1>
+    <div id="a01" class="h1">
+      <p>
+	Qualquer jogo funciona em torno de um laço principal e é por
+	este laço que começamos. <a href="https://old.gustavobarbieri.com.br/jogos/jogo/doc/a01.html">Código Fonte</a>.
+      </p>
+      <p>
+	O jogo será totalmente contido em uma classe básica chamada
+	<code class="class">Game</code>. Esta classe não precisaria
+	existir, poderia ser código direto em uma função <code class="func">main()</code>, porém eu gosto de deixar as coisas
+	bem organizadas e então uso esta classe, a qual vai conter
+	como atributos as variáveis comuns a várias chamadas, tais
+	como o nosso laço principal, tratador de eventos e outras.
+      </p>
+      <p>
+	No diagrama de classes da versão a01 podemos ver que temos
+	duas classes: <code class="class">Game</code> e 
+	<code class="class">Background</code>. A
+	primeira conterá o laço principal <code class="func">loop()</code> e terá uma instância de <code class="class">Background</code>, que representará o fundo do
+	nosso jogo.	
+      </p>
+
+      <div class="img" id="div-a01" onclick="imgToggle( &#39;a01&#39; )" style="border-style: dotted; border-width: 1px;">
+	<img alt="a01: classes existentes" src="docs/img/a01.png" id="img-a01" style="opacity: -0.2; display: none;"> 
+	<p id="caption-a01" style="font-style: italic; font-weight: bold;">Diagrama de Classes da versão a01.</p>
+      </div>
+
+      <p>
+	A execução desta versão apresentará apenas uma tela preta, que
+	ficará aberta até que o botão de fechar janela ou a tecla ESC
+	sejam pressionados. Aparentemente isto é inútil porém isso tem
+	<strong>tudo</strong> que um jogo precisa! Veja o laço principal
+	<code class="func">loop()</code>, ele chama sequencialmente:
+      </p>
+      <dl>
+	<dt><code class="func">handle_events()</code></dt>
+	<dd>
+	  Trata os eventos, tomando as ações necessárias.
+	</dd>
+
+	<dt><code class="func">actors_update( dt )</code></dt>
+	<dd>
+	  Atualiza cada ator do jogo, seja ele o fundo, a nave, os
+	  inimigos, os tiros, o placar, ou seja, <strong>tudo que é
+	  dinâmico</strong>.
+	  O parâmetro passado é utilizado como o tempo, pois se algum
+	  ator muda algum parâmetro baseado nisso, ele deve
+	  utilizar este valor. <em>Atualizar o ator não é desenhá-lo
+	  na tela e sim atualizar o seu estado interno</em>. Em geral
+	  cada ator provê um método <code class="func">update()</code>
+	  o qual é invocado para fazer tal atualização.
+	</dd>
+
+	<dt><code class="func">actors_draw()</code></dt>
+	<dd>
+	  Nesta fase os atores serão desenhados na tela. A posição de
+	  desenho, bem como o conteúdo a ser desenhado, serão
+	  determinados a partir do estado interno do jogador. Em geral
+	  cada ator provê um método <code class="func">draw( screen
+	  )</code>, o qual recebe a tela como parâmetro e faz ele
+	  mesmo os desenhos.
+	</dd>
+      </dl>
+
+      <p>
+	Observe que apesar desta estrutura estar modelada em classes,
+	utilizando programação orientada a objetos, ela poderia muito
+	bem ser feita em qualquer linguagem. Por exemplo, em C
+	poderíamos ter estruturas representando cada ator, cada ator
+	conter uma chamada de retorno (<em>"callback"</em>) para fazer
+	sua atualização e desenho na tela.
+      </p>
+
+      <p>
+	A partir deste modelo básico nós podemos evoluir nosso jogo e
+	é o que faremos a partir de agora. Apenas note que uma boa
+	estrutura para seu projeto pode tornar as coisas muito mais
+	fáceis e é isso que buscamos com este curso.
+      </p>
+
+    </div>
+
+    <h1 id="h-a02" onclick="hToggle( &#39;a02&#39; )">
+      a02: Movimentação do Plano de Fundo
+    </h1>
+    <div id="a02" class="h1">
+      <p>
+	Nesta versão adicionaremos funcionalidades ao fundo para que
+	assim este pareça estar em movimento. <a href="https://old.gustavobarbieri.com.br/jogos/jogo/doc/a02.html">Código Fonte</a>.
+      </p>
+      <p>
+	Veja o diagrama de classes desta versão, note que adicionamos
+	dois atributos <code class="var">isize</code> e <code class="var">pos</code>, além disso modificamos o construtor da
+	classe para que este receba uma imagem ou nome de imagem como
+	parâmetro e alteramos a função <code class="func">update()</code> para que esta faça alguma coisa e
+	a função <code class="func">draw( screen )</code> para que
+	desenhe o novo fundo na tela.
+      </p>
+	      
+      <p>
+	As mudanças requeridas foram:
+      </p>
+      
+      <dl>
+	<dt><code class="func">__init__( image )</code></dt>
+	<dd>
+	  Agora recebe um parâmetro que pode ser o nome da imagem ou
+	  uma imagem do pygame. Caso o parâmetro for um nome, a imagem
+	  será lida. Após isso o fundo será construído em uma imagem a
+	  qual será usada para a animação.
+	</dd>
+
+	<dt><code class="func">update( dt )</code></dt>
+	<dd>
+	  Passa a atualizar a posição baseado no tempo.
+	</dd>
+
+	<dt><code class="func">draw( screen )</code></dt>
+	<dd>
+	  Passa a desenhar o fundo na tela baseado na posição.
+	</dd>
+
+	<dt><code class="var">isize</code></dt>
+	<dd>
+	  Contém o tamanho da imagem básica.
+	</dd>
+
+	<dt><code class="var">pos</code></dt>
+	<dd>
+	  Contém a posição atual do fundo.
+	</dd>
+      </dl>
+
+      <div class="img" id="div-a02" onclick="imgToggle( &#39;a02&#39; )">
+	<img alt="a02: classes existentes" src="./Introdução à Programação de Jogos_files/a02.png" id="img-a02"> 
+	<p id="caption-a02">Diagrama de Classes da versão a02.</p>
+      </div>
+      
+      <h2 id="h-a02-2" onclick="hToggle( &#39;a02-2&#39; )">
+	Técnicas de Construção de Fundos
+      </h2>
+      <div id="a02-2" class="h2">
+	<p>
+	  Para a construção de fundos existem várias técnicas, desde
+	  lermos uma imagem imensa que representa todo o fundo do jogo
+	  até a leitura de pequenos pedaços que podem ser encaixados
+	  lado a lado, chamados de <em>"tile"</em>, passando por outras
+	  como a montagem a partir de um mapa e peças básicas.
+	</p>
+	<p>
+	  Neste jogo utilizaremos, para manter o código o mais enxuto
+	  possível e portanto facilitar a explicação, o sistema de
+	  <em>tiles</em>. Foi gerado uma imagem que o lado esquerdo se
+	  encaixa ao lado direito e o topo se encaixa no fundo. Estas
+	  imagens serão repetidas até formarem uma imagem que seja maior
+	  que a tela em 1 tile. Na implementação deste jogo fizemos a
+	  imagem ser maior tanto na horizontal quanto na vertical para
+	  que possamos experimentar, porém como o movimento é vertical,
+	  poderíamos deixar o comprimento horizontal igual e aumentar
+	  apenas o vertical. Com este excesso podemos descer a tela até
+	  que cheguemos ao fim e então subiremos a tela em 1 tile e
+	  começamos a descida novamente, isso dará a impressão que o
+	  fundo sempre desce.
+	</p>
+	<p>
+	  Na maioria dos jogos utiliza-se outro sistema de fundos, o
+	  baseado em mapas e peças básicas. Neste sistema existem
+	  várias peças básicas que se encaixam, cada uma representando
+	  um estilo de terreno, depois existe um mapa o qual indica o
+	  posicionamento destes terrenos. A montagem do terreno é
+	  dinâmica, sendo feita em <code class="func">update( dt
+	  )</code>, a qual montará a imagem a ser impressa por <code class="func">draw( screen )</code>.
+	</p>
+      </div>
+
+      <p>
+	Veja que devido a boa estrutura do código pudemos alterar o
+	fundo sem ter que tocar no código do jogo. O resultado pode
+	ser visto abaixo.
+      </p>
+      
+
+      <div class="img" id="div-ss-a02" onclick="imgToggle( &#39;ss-a02&#39; )">
+	<img alt="a02: tela do jogo" src="./Introdução à Programação de Jogos_files/screenshot-a02.png" id="img-ss-a02">
+	<p id="caption-ss-a02">tela do jogo a02.</p>
+      </div>
+    </div>
+
+
+    <h1 id="h-a03" onclick="hToggle( &#39;a03&#39; )">
+      a03: Adicionando Mais Atores
+    </h1>
+    <div id="a03" class="h1">
+      <p>
+	Nesta versão adicionaremos mais atores, começando com os
+	inimigos, os quais são definidos na classe <code class="class">Enemy</code>. <a href="https://old.gustavobarbieri.com.br/jogos/jogo/doc/a03.html">Código Fonte</a>.
+      </p>
+      <p>
+	Antes de codificar temos que pensar: <em>O componente que
+	adicionarei pode ser reutilizado no futuro?</em> Vamos pensar, o
+	inimigo será uma nave, tão como o nosso jogador, portanto ambos
+	devem descender de algo em comum, no nosso caso a classe <code class="class">Ship</code>. E a nave, vai ter algo em comum com
+	mais alguma coisa? Sim! Os tiros serão objetos que se movem,
+	logo eles deverão descender de algo em comum, no caso a classe
+	<code class="class">GameObject</code>. Pensar antes de codificar
+	pode economizar muito esforço mais tarde. Vale notar que se o
+	programa fosse procedural ao invés de orientado a objetos, as
+	classes acima mencionadas seriam estruturas, a herança seria uma
+	outra estrutura com o primeiro componente sendo a classe mãe e a
+	codificação se tornaria bem parecida!
+      </p>
+      
+      <p>
+	Começaremos a entender a classe <code class="class">GameObject</code>. Como mencionado acima, esta
+	classe representará os objetos móveis. As necessidades de um
+	objeto móvel seriam: a imagem a ser mostrada (<code class="var">image</code>), a velocidade com que o objeto se
+	move (<code class="var">speed</code>), a
+	posição (<code class="var">rect</code>), uma função de
+	atualização (<code class="func">update( dt )</code>), função
+	para desenhá-lo (<code class="func">draw( screen )</code>) e as
+	funções auxiliares para manipular os parâmetros.
+      </p>
+      
+      <p>
+	A classe <code class="class">Ship</code> deve conter um contador
+	de vidas, pois as naves poderão ter mais de uma vida se desejável.
+      </p>
+      <p>
+	A classe <code class="class">Enemy</code> é apenas uma nave, sem
+	nada de especial por enquanto, apenas a imagem padrão que vai
+	ser diferente. É interessante ter esta classe em separado pois
+	assim poderemos melhorar sua implementação se for desejado.
+      </p>
+      
+      <p>
+	Nesta versão faremos uma pequena alteração à classe <code class="class">Game</code> para que esta mantenha uma lista de
+	atores (<code class="var">list</code>) e também uma função que
+	gerencie o jogo, dando ação a ele (<code class="func">manage()</code>).
+      </p>
+      
+      <div class="img" id="div-a03" onclick="imgToggle( &#39;a03&#39; )">
+	<img alt="a03: classes existentes" src="./Introdução à Programação de Jogos_files/a03.png" id="img-a03"> 
+	<p id="caption-a03">Diagrama de Classes da versão a03.</p>
+      </div>
+      
+      <div class="img" id="div-ss-a03" onclick="imgToggle( &#39;ss-a03&#39; )">
+	<img alt="a03: tela do jogo" src="./Introdução à Programação de Jogos_files/screenshot-a03.png" id="img-ss-a03">
+	<p id="caption-ss-a03">tela do jogo a03.</p>
+      </div>
+      
+    </div>
+    
+    <h1 id="h-a04" onclick="hToggle( &#39;a04&#39; )">
+      a04: Adicionando o Personagem Principal
+    </h1>
+    <div id="a04" class="h1">
+      <p>
+	Com esta versão teremos quase um jogo completo, nela
+	adicionaremos o personagem principal, que será representado
+	pela classe <code class="class">Player</code>, o qual poderá
+	se movimentar. <a href="https://old.gustavobarbieri.com.br/jogos/jogo/doc/a04.html">Código Fonte</a>.
+      </p>
+      <p>
+	A classe <code class="class">Player</code> é descendente da
+	classe <code class="class">Ship</code>, porém implementa mais
+	funcionalidades, como o acumulo de experiência (<code class="var">XP</code>), um novo sistema de posicionamento
+	(sobrescreve <code class="func">get_pos()</code>) e uma função
+	de movimentação personalizada (sobrescreve <code class="func">update( dt )</code>). O construtor também foi
+	modificado para utilizar outra imagem e também para iniciar a
+	velocidade em 0, pois não queremos que nossa nave inicie em
+	movimento.
+      </p>  
+      <p>
+	As funções de movimentação foram adicionadas à classe mãe
+	<code class="class">Ship</code>, mesmo não sendo utilizadas
+	por <code class="class">Enemy</code>, é possível que para
+	adicionar mais inteligência aos inimigos tais funções sejam
+	necessárias.
+      </p>
+      <p>
+	Com a introdução do jogador é possível que este colida com os
+	inimigos, portanto adicionamos as funções <code class="func">do_collision()</code> e <code class="func">is_dead()</code>. A primeira é utilizada pelo
+	jogo para indicar que esta nave colidiu em algo, a segunda é
+	utilizada para saber se a nave ainda sobrevive. Estas funções
+	podem ser sobrescritas posteriormente para que após a colisão
+	ou morte sons e efeitos especiais sejam usados. Como ambos
+	jogador e inimigos podem colidir e morrer, as funções ficam na
+	classe mãe. <code class="class">Game</code> sofreu alterações
+	para que tais métodos fossem utilizados (<code class="func">actors_act()</code>).
+      </p>
+      <p>
+	Para que o jogador seja utilizado, adicionamos uma instância
+	deste em <code class="class">Game</code>, bem como código ao
+	tratador de eventos <code class="func">handle_events()</code>
+	para que este chame as funções necessárias do jogador. Também
+	acrescentamos o jogador à lista de atores.
+      </p>
+
+      <div class="img" id="div-a04" onclick="imgToggle( &#39;a04&#39; )">
+	<img alt="a04: classes existentes" src="./Introdução à Programação de Jogos_files/a04.png" id="img-a04"> 
+	<p id="caption-a04">Diagrama de Classes da versão a04.</p>
+      </div>
+
+      <div class="img" id="div-ss-a04" onclick="imgToggle( &#39;ss-a04&#39; )">
+	<img alt="a04: tela do jogo" src="./Introdução à Programação de Jogos_files/screenshot-a04.png" id="img-ss-a04">
+	<p id="caption-ss-a04">tela do jogo a04.</p>
+      </div>
+    </div>
+
+    <h1 id="h-a05" onclick="hToggle( &#39;a05&#39; )">
+      a05: Jogo Completo!
+    </h1>
+    <div id="a05" class="h1">
+      <p>
+	Nesta versão completamos o funcionamento do jogo,
+	adicionando os tiros, representados pela classe <code class="class">Fire</code> e também adicionando a passagem de
+	fases. <a href="https://old.gustavobarbieri.com.br/jogos/jogo/doc/a05.html">Código Fonte</a>.
+      </p>
+      <p>
+	A classe <code class="class">Fire</code> é descendente de
+	<code class="class">GameObject</code> e a extende recebendo
+	uma lista a qual ela se adiciona. Isto é necessário para que
+	os tiros entrem para a lista de atores e participem das etapas
+	de atualização, colisão e desenho na tela.
+      </p>
+      <p>
+	Para que os tiros sejam usados, precisamos alterar a classe
+	<code class="class">Ship</code> (pois todas as naves podem
+	atirar) e implementamos a função <code class="func">fire()</code>. Note que tal função será
+	sobrescrita por <code class="class">Player</code> pois
+	queremos que ao passar de fase o jogador aumente o poder de
+	ataque, para isso adicionamos <code class="func">get_fire_speed()</code>, a qual vai dizer a
+	velocidade e número dos tiros, ao jogador.
+      </p>
+      <p>
+	Como queremos que nosso jogo possa ter mais efeitos especiais
+	no futuro, adicionamos a função <code class="func">do_hit()</code> à <code class="class">Ship</code>, que por agora vai ter o mesmo
+	comportamento de <code class="func">do_collision()</code>. É interessante tê-las
+	separada pois sons e efeitos diferentes podem ser aplicados a
+	cada caso.
+      </p>
+      <p>
+	Os tiros podem ser instanciados em dois casos: se o jogador
+	pressionar a tecla ou pelos inimigos, de forma aleatória. O
+	primeiro caso é implementado adicionando código à <code class="func">handle_events()</code>, o segundo com código em
+	<code class="func">manage()</code>.
+      </p>
+      <p>
+	Com os tiros temos outro tipo de colisão a conferir: a dos
+	tiros com as naves. Isto é feito em <code class="func">actors_act()</code>, lembrando de aumentar a
+	experiência do usuário caso ele tenha atingido algum inimigo.
+      </p>
+      <p>
+	Para implementar a passagem de fase, adicionamos <code class="func">change_level()</code> ao jogo. Esta vai conferir
+	se a experiência é suficiente e então aumentamos o número de
+	vidas do jogador e fazemos a passagem de fase, que no nosso
+	caso é apenas mudar o fundo.
+      </p>
+      <div class="img" id="div-a05" onclick="imgToggle( &#39;a05&#39; )">
+	<img alt="a05: classes existentes" src="./Introdução à Programação de Jogos_files/a05.png" id="img-a05"> 
+	<p id="caption-a05">Diagrama de Classes da versão a05.</p>
+      </div>
+
+      <div class="img" id="div-ss-a05" onclick="imgToggle( &#39;ss-a05&#39; )">
+	<img alt="a05: tela do jogo" src="./Introdução à Programação de Jogos_files/screenshot-a05.png" id="img-ss-a05">
+	<p id="caption-ss-a05">tela do jogo a05.</p>
+      </div>
+    </div>
+
+    <h1 id="h-a06" onclick="hToggle( &#39;a06&#39; )">
+      a06: Adicionando Novos Recursos
+    </h1>
+    <div id="a06" class="h1">
+      <p>
+	Nesta versão pegamos o jogo pronto, versão anterior, e
+	modificamos-o para adicionar novos recursos, dentre eles um
+	placares de vida e de experiência e inimigos mais
+	"inteligentes". Algumas optimizações também serão aplicadas.
+	<a href="https://old.gustavobarbieri.com.br/jogos/jogo/doc/a06.html">Código Fonte</a>.
+      </p>
+      <p>
+	Para adicionar o placares de vida e experiência precisamos
+	implementar as classes <code class="class">PlayerLifeStatus</code> e <code class="class">PlayerXPStatus</code>, respectivamente. Depois
+	adicionamos instancias destas ao jogo e modificamos as funções
+	<code class="func">actors_update( dt )</code> e <code class="func">actors_draw()</code> para que assim os placares
+	sejam atualizados e desenhados na tela. Note que estas classes
+	também poderiam ser descendentes de <code class="class">GameObject</code>, porém como pouquíssimos
+	recursos desta seriam utilizados, resolvemos implementá-las
+	totalmente.
+      </p>
+      <p>
+	A melhoria em <code class="class">Enemy</code> advém do uso do
+	parâmetro <code class="var">behaviour</code>, o qual será
+	utilizado para dar uma velocidade inicial ao
+	inimigo. Diferentes valores resultarão em diferentes
+	comportamentos (velocidades iniciais). Os inimigos também
+	passarão a ter mais vidas dependendo do nível que o jogo se
+	encontra.
+      </p>
+      <p>
+	As otimizações são bem simples: leremos cada imagem somente
+	uma vez. Nas versões anteriores a cada nova instância de um
+	objeto a imagem era lida do disco e montada em memória, isto
+	acarretava em desperdício de processamento e memória. Nesta
+	versão utilizamos <code class="func">load_images()</code> para
+	ler as imagens para a memória no início e então passamos a
+	referência desta imagem ao instanciar as classes de objetos.
+      </p>
+      <div class="img" id="div-a06" onclick="imgToggle( &#39;a06&#39; )">
+	<img alt="a06: classes existentes" src="./Introdução à Programação de Jogos_files/a06.png" id="img-a06"> 
+	<p id="caption-a06">Diagrama de Classes da versão a06.</p>
+      </div>
+
+      <div class="img" id="div-ss-a06" onclick="imgToggle( &#39;ss-a06&#39; )">
+	<img alt="a06: tela do jogo" src="./Introdução à Programação de Jogos_files/screenshot-a06.png" id="img-ss-a06">
+	<p id="caption-ss-a06">tela do jogo a06.</p>
+      </div>
+    </div>
+    <h1 id="h-a07" onclick="hToggle( &#39;a07&#39; )">
+      a07: Otimizando com "<i>Color Key</i>"
+    </h1>
+    <div id="a07" class="h1">
+      <p>
+	Nesta versão fazemos nossa primeira otimização utilizando a
+	técnica de transparência com <i>Color Key</i>.
+	<a href="https://old.gustavobarbieri.com.br/jogos/jogo/doc/a07.html">Código Fonte</a>.
+      </p>
+      <p>
+	Você deve ter percebido que os exemplos até agora <b>consomem
+	muita CPU</b>. A razão disso é que nós atualizamos a tela
+	inteira todas as vezes e ainda todas as nossas imagens são
+	32bits (RGBA, transparência <b>por pixel</b>). Então, a cada
+	quadro, nós fazemos <b>800 * 600 * 4 = 1.920.000</b>
+	operações de mistura de cor para o fundo, só que o fundo nunca
+	é transparente! Além disso, para cada objeto, como a nave,
+	inimigos, tiros e placar, nós também fazemos esta opração de
+	mistura de cor para simular a transparência.
+      </p>
+      <p>
+	Em geral, nos jogos, pouquíssimas imagens usam transparência
+	por pixel, somente imagens que são "translúcidas". Nas demais
+	imagens utiliza-se a técnica de <i>Color Key</i> na qual uma
+	cor é designada para representar a transparência. Esta técnica
+	também é utilizada no formato de arquivo "GIF".
+      </p>
+      <p>
+	A adaptação do jogo para utilizar <i>Color Key</i> é
+	extremamente fácil:
+      </p>
+      <ol>
+	<li>
+	  Converta suas imagens, retirando a transparência por pixel
+	  e usando uma cor para representar os pontos
+	  transparentes. As imagens se encontram no diretório
+	  <b>imagens-noalpha</b>. A cor escolhida foi o magenta (100%
+	  vermelho, 0% verde e 100% azul).
+	</li>
+	<li>
+	  Mude o diretório de onde as imagens são lidas para que as
+	  novas imagens sejam usadas.
+	</li>
+	<li>
+	  Desabilite o canal alpha de todas as imagens com <code class="func">set_alpha()</code>.
+	</li>
+	<li>
+	  Defina qual a <i>Color Key</i> escolhida com <code class="func">set_color_key()</code>.
+	</li>
+      </ol>
+      <p>
+	Agora o jogo já deve consumir um pouco menos de CPU.
+      </p>
+    </div>
+    <h1 id="h-a08" onclick="hToggle( &#39;a08&#39; )">
+      a08: Otimizando com "<i>Dirty Rectangles</i>"
+    </h1>
+    <div id="a08" class="h1">
+      <p>
+	Nesta versão fazemos nossa segunda e mais significante
+	otimização utilizando a técnica de <i>Dirty
+	Rectangles</i>. Esta técnica consiste em não pintar a tela
+	inteira toda vez, apenas limpar o que foi sujo no quadro
+	anterior e pintar o que é novo neste quadro.
+	<a href="https://old.gustavobarbieri.com.br/jogos/jogo/doc/a08.html">Código Fonte</a>.
+      </p>
+      <p>
+	Apesar da otimização <i>Color Key</i> ajudar um pouco, o jogo
+	ainda consome muito CPU, pois atualizamos a tela toda,
+	utilizando mais de <b>800 * 600 * 3 = 1.440.000</b> operações
+	a cada 1/60 segundos. Ainda é muita coisa!
+      </p>
+      <p>
+	O problema é que o fundo se movimenta a cada quadro.
+	Se, ao invés de movimentar o fundo toda vez, deixássemos ele
+	parado por alguns quadros (<code class="var">update_threshold</code>), poderíamos então
+	utilizar a técnica de limpar o que mudou e pintar os novos
+	objetos.
+      </p>
+      <p>
+	O PyGame provê a classe <code class="class">RenderUpdates</code> que implementa a técnica de
+	<i>Dirty Rectangles</i> para nós. Apenas temos que chamar
+	<code class="func">clear()</code> nas instâncias desta classe.
+      </p>
+      <p>
+	Para nossos objetos <code class="class">PlayerXPStatus</code>
+	e <code class="class">PlayerLifeStatus</code>, que não são do
+	tipo <code class="class">Sprite</code> e também não estão em
+	um <code class="class">RenderUpdates</code>, temos que
+	implementar a técnica manualmente, para isso criamos o
+	método <code class="func">clear()</code> que dado o fundo e a
+	tela, pinta nesta o pedaço do fundo que foi anteriormente
+	"sujo". Também temos que alterar o método <code class="func">draw()</code> para que lembre onde foi sujo.
+      </p>
+      <p>
+	A classe <code class="class">Background</code> foi alterada de
+	forma a atualizar apenas após um número de quadros <code class="var">update_threshold</code>.
+      </p>
+    </div>
+    <h1 id="h-evolucao" onclick="hToggle( &#39;evolucao&#39; )">
+      Evoluindo o Projeto
+    </h1>
+    <div id="evolucao" class="h1">
+      <p>
+	Baseado nas mudanças feitas em a06 podemos evoluir o jogo para
+	algo mais satisfatório. Muitas mudanças precisariam de pouco
+	código e apresentariam muito efeito, dentre elas:
+      </p>
+      <dl>
+	<dt>Leitor de Mapas</dt>
+	<dd>
+	  Um leitor de mapas que montasse todo o terreno do jogo. Isto
+	  daria a impressão que o jogo evolui e diminuiria a
+	  monotonia. Um leitor de mapas pode ser implementado usando
+	  um arquivo de texto no qual cada letra especifica um
+	  terreno. O fundo seria montado colocando-se os terrenos lado
+	  a lado conforme fosse necessário.
+	</dd>
+	
+	<dt>Outros Inimigos</dt>
+	<dd>
+	  Outros inimigos poderiam ser implementados facilmente, para
+	  isso seria necessário modificar a imagem, a experiência
+	  <code class="var">XP</code> deste e um pouco mais de
+	  inteligência dentro do <code class="func">update( dt )</code>.
+	  Inimigos de tamanhos diferentes e ações diferentes fariam
+	  com que o jogo parecesse algo muito mais elaborado, porém a
+	  implementação é trivial.
+	</dd>
+	
+	<dt>Leitor de Fases</dt>
+	<dd>
+	  Ao invés de gerar inimigos aleatóriamente o jogo poderia ler
+	  a posição dos inimigos e instanciá-los quando tal posição
+	  entrasse na tela. Isto pode ser implementado similarmente 
+	  ao leitor de mapas utilizando um arquivo de texto no qual
+	  cada letra especifica um tipo de inimigo e sua posição. Isso
+	  faria parecer que cada pedaço da fase tem uma determinada
+	  dificuldade, relacionando-se com o terreno. Opcionalmente
+	  poderia ser implementado um sistema de regras para geração
+	  de inimigos baseado no tempo ou na quantidade de inimigos
+	  que está na tela.
+	</dd>
+	
+	<dt>Sons e Efeitos Especiais</dt>
+	<dd>
+	  Todo jogo se beneficia de efeitos sonoros, este não seria
+	  diferente. Para utilizar sons os objetos deverão ler o
+	  arquivo no início (vide as imagens) e quando necessário
+	  estes sons deverão ser tocados. Já os efeitos especiais
+	  devem ser codificados como descendentes de <code class="class">GameObject</code>, devem ter várias imagens
+	  que ao serem passadas em sequência fazem parecer que é uma
+	  animação e também podem ter sons. Os efeitos devem ser
+	  adicionados a uma lista de efeitos e eliminados (<code class="func">kill()</code>) ao fim da animação. Ao menos que
+	  se deseje o objeto de efeito não deve ser conferido por
+	  colisão (um outro caso seria os efeitos serem destroços os
+	  quais poderiam derrubar os personagens).
+	</dd>
+
+	<dt>Apresentações e Telas de Passagem de Fase</dt>
+	<dd>
+	  Todo jogo tem telas de apresentação, telas com a história e
+	  telas de passagem de fase (possivelmente com as
+	  histórias). Desenvolver tais telas é muito fácil: faça um
+	  laço em separado que apresente as animações!
+	</dd>
+
+	<dt>Telas de Opções</dt>
+	<dd>
+	  Um jogo costuma ter telas de opções para que o usuário possa
+	  entrar com seu apelido, dificuldade e outros dados que achar
+	  interessantes. Uma tela de opções pode ser implementada em
+	  um laço separado o qual tratará os eventos, mostrará os
+	  resultados e etc. como um outro jogo.
+	</dd>
+      </dl>
+    </div>
+
+    <h1 id="h-conclusao" onclick="hToggle( &#39;conclusao&#39; )">Conclusão</h1>
+    <div id="conclusao" class="h1">
+      <p>
+	Este curso de introdução à programação de jogos mostrou que é
+	possível escrever um jogo utilizando técnicas bem
+	simples. Tomando cuidado com a estrutura o projeto conseguimos
+	extendê-lo sem ter que alterá-lo drasticamente.
+      </p>
+    </div>        
+    
+    <div id="author">
+      <p>
+	Gustavo Sverzut Barbieri 
+	<span class="email1">barbieri</span><span class="email2">gmail.com</span>.
+      </p>
+    </div>
+  
+</body></html>
