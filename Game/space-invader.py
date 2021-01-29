@@ -4,9 +4,8 @@
 ###############################################################################
 #
 # Mudanças em relação à versão anterior:
-#    - classe GameObject: representa objetos do jogo (inimigos, tiros, jogador)
-#    - classe Ship: base para todas as naves do jogo
-#    - classe Enemy: presença de inimigos na tela
+#    - classe Player: representa o jogador
+#    - jogador pode se movimentar
 #
 ###############################################################################
 
@@ -141,6 +140,49 @@ class Ship( GameObject ):
     def set_lives( self, lives ):
         self.lives = lives
     # set_lives()
+
+
+
+    def do_collision( self ):
+        if self.get_lives() == 0:
+            self.kill()
+        else:
+            self.set_lives( self.get_lives() - 1 )
+    # do_collision()
+
+    
+
+    def is_dead( self ):
+        return self.get_lives() == 0
+    # is_dead()
+
+
+
+    def accel_top( self ):
+        speed = self.get_speed()
+        self.set_speed( ( speed[ 0 ], speed[ 1 ] - self.acceleration[ 1 ] ) )
+    # accel_top
+
+
+
+    def accel_bottom( self ):
+        speed = self.get_speed()
+        self.set_speed( ( speed[ 0 ], speed[ 1 ] + self.acceleration[ 1 ] ) )
+    # accel_bottom
+
+
+
+    def accel_left( self ):        
+        speed = self.get_speed()
+        self.set_speed( ( speed[ 0 ] - self.acceleration[ 0 ], speed[ 1 ] ) )
+    # accel_left
+
+
+
+    def accel_right( self ):
+        speed = self.get_speed()
+        self.set_speed( ( speed[ 0 ] + self.acceleration[ 0 ], speed[ 1 ] ) )
+    # accel_right
 # Ship
 
 
@@ -152,6 +194,65 @@ class Enemy( Ship ):
         Ship.__init__( self, position, lives, speed, image )
     # __init__()
 # Enemy
+
+
+
+
+class Player( Ship ):
+    """
+    A classe Player é uma classe derivada da classe GameObject.
+       No entanto, o personagem não morre quando passa da borda, este só
+    interrompe o seu movimento (vide update()).
+       E possui experiência, que o fará mudar de nivel e melhorar seu tiro.
+       A função get_pos() só foi redefinida para que os tiros não saissem da
+    parte da frente da nave do personagem, por esta estar virada ao contrário
+    das outras.
+    """
+    def __init__( self, position, lives=10, image=None ):
+        if not image:
+            image = "nave.png"
+        Ship.__init__( self, position, lives, [ 0, 0 ], image )
+        self.set_XP( 0 )
+    # __init__()
+
+
+    
+    def update( self, dt ):
+        move_speed = ( self.speed[ 0 ] * dt / 16,
+                       self.speed[ 1 ] * dt / 16)
+        self.rect  = self.rect.move( move_speed )
+        
+        if ( self.rect.right > self.area.right ):
+            self.rect.right = self.area.right
+            
+        elif ( self.rect.left < 0 ):
+            self.rect.left = 0
+            
+        if ( self.rect.bottom > self.area.bottom ):
+            self.rect.bottom = self.area.bottom
+            
+        elif ( self.rect.top < 0 ):
+            self.rect.top = 0
+    # update()
+
+
+    
+    def get_pos( self ):
+        return ( self.rect.center[ 0 ], self.rect.top )
+    # get_pos()
+
+
+    
+    def get_XP( self ):
+        return self.XP
+    # get_XP()
+
+    
+
+    def set_XP( self, XP ):
+        self.XP = XP
+    # get_XP()
+# Player
 
 
 
@@ -239,6 +340,7 @@ class Game:
     screen_size = None
     run         = True
     list        = None
+    player      = None
     background  = None    
     
     def __init__( self, size, fullscreen ):
@@ -264,6 +366,8 @@ class Game:
         """
         Trata o evento e toma a ação necessária.
         """
+        player = self.player
+
         for event in pygame.event.get():
             t = event.type
             if t in ( KEYDOWN, KEYUP ):
@@ -275,6 +379,24 @@ class Game:
             elif t == KEYDOWN:
                 if   k == K_ESCAPE:
                     self.run = False
+                elif k == K_UP:
+                    player.accel_top()
+                elif k == K_DOWN:
+                    player.accel_bottom()
+                elif k == K_RIGHT:
+                    player.accel_right()
+                elif k == K_LEFT:
+                    player.accel_left()
+        
+            elif t == KEYUP:
+                if   k == K_DOWN:
+                    player.accel_top()
+                elif k == K_UP:
+                    player.accel_bottom()
+                elif k == K_LEFT:
+                    player.accel_right()
+                elif k == K_RIGHT:
+                    player.accel_left()
     # handle_events()
 
 
@@ -295,6 +417,33 @@ class Game:
         for actor in self.list.values():
             actor.draw( self.screen )
     # actors_draw()
+    
+
+
+    def actor_check_hit( self, actor, list, action ):
+        if   isinstance( actor, pygame.sprite.RenderPlain ):
+            hitted = pygame.sprite.groupcollide( actor, list, 1, 0 )
+            for v in hitted.values():
+                for o in v:
+                    action( o )
+            return hitted
+        
+        elif isinstance( actor, pygame.sprite.Sprite ):
+            if pygame.sprite.spritecollide( actor, list, 1 ):
+                action()
+            return actor.is_dead()
+    # actor_check_hit()
+
+
+    
+    def actors_act( self ):
+        # Verifica se o personagem trombou em algum inimigo
+        self.actor_check_hit( self.player, self.list[ "enemies" ],
+                              self.player.do_collision )
+        if self.player.is_dead():
+            self.run = False
+            return
+    # actors_check_hit()
 
 
 
@@ -323,8 +472,12 @@ class Game:
         clock         = pygame.time.Clock()
         dt            = 16
 
+        pos         = [ self.screen_size[ 0 ] / 2, self.screen_size[ 1 ] ]
+        self.player = Player( pos, lives=10 )
+
         self.list = {
             "enemies" : pygame.sprite.RenderPlain( Enemy( [ 120, 0 ] ) ),
+            "player" : pygame.sprite.RenderPlain( self.player ),
             }
 
         # assim iniciamos o loop principal do programa
@@ -336,6 +489,9 @@ class Game:
 
             # Atualiza Elementos
             self.actors_update( dt )
+
+            # Faça os atores atuarem
+            self.actors_act()
 
             # Faça a manutenção do jogo, como criar inimigos, etc.
             self.manage()

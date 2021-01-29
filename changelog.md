@@ -1,7 +1,8 @@
 ## alpha - example of Gustavo Barbieri
 
 ### `a.4` - add hero actor
-
+* classe Player: representa o jogador
+* jogador pode se movimentar
 
 ### `a.3` - add boss actor
 * classe GameObject: representa objetos do jogo (inimigos, tiros, jogador)
